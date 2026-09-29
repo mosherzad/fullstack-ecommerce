@@ -27,7 +27,6 @@ const signUp = catchAsync(
       },
     });
 
-    console.log(user);
     res.status(201).json({ status: "success", data: { user } });
   },
 );
