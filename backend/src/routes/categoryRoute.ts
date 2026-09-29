@@ -1,12 +1,24 @@
 import express from "express";
-import prisma from "../lib/prisma.js";
+import {
+  addCategory,
+  deleteCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+} from "../controllers/categoryController.js";
+import { validateId } from "../middleware/validateIdMiddleware.js";
+import { generateSlug } from "../middleware/createSlugMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").post(async (req, res, next) => {
-  const newCategory = await prisma.category.create({ data: req.body });
+router.route("/").get(getAllCategories);
 
-  res.status(201).json({ status: "success", data: { newCategory } });
-});
+router.route("/").post(generateSlug, addCategory);
+
+router.route("/:id").get(validateId, getCategoryById);
+
+router.route("/:id").patch(validateId, updateCategory);
+
+router.route("/:id").delete(validateId, deleteCategory);
 
 export default router;

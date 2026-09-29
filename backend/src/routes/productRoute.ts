@@ -1,5 +1,5 @@
 import express from "express";
-import { generateProductSlug } from "../middleware/productSlugMiddleware.js";
+import { generateSlug } from "../middleware/createSlugMiddleware.js";
 import {
   addProduct,
   deleteProduct,
@@ -7,15 +7,15 @@ import {
   getProductById,
   updateProduct,
 } from "../controllers/productController.js";
-import { validateProductId } from "../middleware/productIdMiddleware.js";
+import { validateId } from "../middleware/validateIdMiddleware.js";
 const router = express.Router();
 
-router.route("/").get(getAllProducts).post(generateProductSlug, addProduct);
+router.route("/").get(getAllProducts).post(generateSlug, addProduct);
 
 router
   .route("/:id")
-  .get(validateProductId, getProductById)
-  .patch(validateProductId, updateProduct)
-  .delete(validateProductId, deleteProduct);
+  .get(validateId, getProductById)
+  .patch(validateId, updateProduct)
+  .delete(validateId, deleteProduct);
 
 export default router;

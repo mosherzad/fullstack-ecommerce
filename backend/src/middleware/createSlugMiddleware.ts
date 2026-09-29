@@ -8,7 +8,7 @@ const createSlug = (text: string) => {
     .replace(/[^\w-]/g, "");
 };
 
-export const generateProductSlug = (
+export const generateSlug = (
   req: Request,
   res: Response,
   next: NextFunction,
