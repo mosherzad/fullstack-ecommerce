@@ -8,14 +8,23 @@ import {
   updateProduct,
 } from "../controllers/productController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
+import { validateDate } from "../middleware/validationDataMiddleware.js";
+import {
+  createProductSchema,
+  updateProductSchema,
+} from "../schemas/productSchema.js";
+
 const router = express.Router();
 
-router.route("/").get(getAllProducts).post(generateSlug, addProduct);
+router
+  .route("/")
+  .get(getAllProducts)
+  .post(validateDate(createProductSchema), generateSlug, addProduct);
 
 router
   .route("/:id")
   .get(validateId, getProductById)
-  .patch(validateId, updateProduct)
+  .patch(validateDate(updateProductSchema), validateId, updateProduct)
   .delete(validateId, deleteProduct);
 
 export default router;
