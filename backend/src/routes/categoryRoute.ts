@@ -11,14 +11,12 @@ import { generateSlug } from "../middleware/createSlugMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getAllCategories);
+router.route("/").get(getAllCategories).post(generateSlug, addCategory);
 
-router.route("/").post(generateSlug, addCategory);
-
-router.route("/:id").get(validateId, getCategoryById);
-
-router.route("/:id").patch(validateId, updateCategory);
-
-router.route("/:id").delete(validateId, deleteCategory);
+router
+  .route("/:id")
+  .get(validateId, getCategoryById)
+  .patch(validateId, updateCategory)
+  .delete(validateId, deleteCategory);
 
 export default router;

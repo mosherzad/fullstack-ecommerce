@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Request, Response, NextFunction } from "express";
 
-export const validateDate = (schema: z.ZodType) => {
+export const validateData = (schema: z.ZodType) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body);
 

@@ -11,13 +11,13 @@ import {
   refreshAccessToken,
   signUp,
 } from "../controllers/authController.js";
-import { validateDate } from "../middleware/validationDataMiddleware.js";
+import { validateData } from "../middleware/validationDataMiddleware.js";
 import { loginSchema, signUpSchema } from "../schemas/userSchema.js";
 const router = express.Router();
 
 router.route("/").get(getUsers);
-router.route("/sign-up").post(validateDate(signUpSchema), signUp);
-router.route("/login").post(validateDate(loginSchema), login);
+router.route("/sign-up").post(validateData(signUpSchema), signUp);
+router.route("/login").post(validateData(loginSchema), login);
 router
   .route("/:id")
   .get(protect, refreshAccessToken, validateId, getUserById)
