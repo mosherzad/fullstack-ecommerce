@@ -86,34 +86,50 @@ const login = catchAsync(
   },
 );
 
-const protect = (req: Request, res: Response, next: NextFunction) => {
-  let token;
+const protect = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
 
-  if (!token)
-    return next(
-      new AppError("You are not logged in please login and try again", 401),
-    );
+    if (!token)
+      return next(
+        new AppError("You are not logged in please login and try again", 401),
+      );
 
-  try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as {
-      userId: string;
-      role: string;
-    };
+    try {
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as {
+        userId: string;
+        role: string;
+        iat: number;
+      };
 
-    req.user = decoded;
-  } catch (error) {
-    return next(new AppError("Invalid or expired token", 401));
-  }
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
 
-  next();
-};
+      if (!user) return next(new AppError("User no longer exists", 401));
+
+      if (
+        user.passwordChangedAt &&
+        Math.floor(user.passwordChangedAt.getTime() / 1000) > decoded.iat
+      ) {
+        return next(new AppError("Password changed, Please login again", 401));
+      }
+
+      req.user = decoded;
+    } catch (error) {
+      return next(new AppError("Invalid or expired token", 401));
+    }
+
+    next();
+  },
+);
 
 const refreshAccessToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -216,4 +232,64 @@ const refreshAccessToken = catchAsync(
   },
 );
 
-export { signUp, login, protect, refreshAccessToken };
+const getMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        photo: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) return next(new AppError("User not found", 404));
+
+    res.status(200).json({ status: "success", data: { user } });
+  },
+);
+
+const updatePassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+    });
+
+    if (!user) return next(new AppError("User not found", 404));
+
+    const isPasswordCorrect = await bcrypt.compare(
+      req.body.currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordCorrect)
+      return next(new AppError("Current password is incorrect", 400));
+
+    const newHashedPassword = await bcrypt.hash(req.body.newPassword, 12);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: newHashedPassword,
+          passwordChangedAt: new Date(),
+        },
+      }),
+
+      prisma.refreshTokens.deleteMany({
+        where: { userId: user.id },
+      }),
+    ]);
+
+    res.status(200).json({
+      status: "success",
+      message: "Password changed successfully, Please login again",
+    });
+  },
+);
+export { signUp, login, protect, refreshAccessToken, getMe, updatePassword };

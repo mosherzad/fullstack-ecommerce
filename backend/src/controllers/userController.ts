@@ -12,6 +12,7 @@ export const getUsers = catchAsync(async (req: Request, res: Response) => {
       role: true,
       createdAt: true,
       updatedAt: true,
+      passwordChangedAt: true,
     },
   });
 
