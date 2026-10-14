@@ -51,7 +51,11 @@ const login = catchAsync(
       return next(new AppError("Invalid credentials", 401));
     }
 
-    const accessToken = createAccessToken(user.id, user.role);
+    const accessToken = createAccessToken(
+      user.id,
+      user.role,
+      user.tokenVersion,
+    );
 
     const jti = randomUUID();
 
@@ -72,13 +76,13 @@ const login = catchAsync(
       .cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "strict",
         maxAge: 15 * 60 * 1000,
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
@@ -107,6 +111,7 @@ const protect = catchAsync(
         userId: string;
         role: string;
         iat: number;
+        tokenVersion: number;
       };
 
       const user = await prisma.user.findUnique({
@@ -114,6 +119,12 @@ const protect = catchAsync(
       });
 
       if (!user) return next(new AppError("User no longer exists", 401));
+
+      if (user.tokenVersion !== decoded.tokenVersion) {
+        return next(
+          new AppError("You are logged out. Please login again.", 401),
+        );
+      }
 
       if (
         user.passwordChangedAt &&
@@ -292,4 +303,66 @@ const updatePassword = catchAsync(
     });
   },
 );
-export { signUp, login, protect, refreshAccessToken, getMe, updatePassword };
+
+const logout = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.refreshToken;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(
+          token,
+          process.env.REFRESH_TOKEN_SECRET!,
+        ) as {
+          jti: string;
+          userId: string;
+        };
+
+        await prisma.$transaction([
+          prisma.user.update({
+            where: { id: decoded.userId },
+            data: {
+              tokenVersion: { increment: 1 },
+            },
+          }),
+
+          prisma.refreshTokens.deleteMany({ where: { jti: decoded.jti } }),
+        ]);
+      } catch (error) {
+        if (
+          error instanceof jwt.JsonWebTokenError ||
+          error instanceof jwt.TokenExpiredError
+        ) {
+          return next(new AppError("Invalid or expired token", 401));
+        }
+
+        return next(error);
+      }
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res
+      .status(200)
+      .json({ status: "success", message: "Logged out successfully" });
+  },
+);
+export {
+  signUp,
+  login,
+  protect,
+  refreshAccessToken,
+  getMe,
+  updatePassword,
+  logout,
+};

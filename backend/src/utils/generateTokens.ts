@@ -1,11 +1,18 @@
-import { randomUUID } from "node:crypto";
 import type { Role } from "../generated/prisma/enums.js";
 import jwt from "jsonwebtoken";
 
-export const createAccessToken = (userId: string, role: Role) => {
-  return jwt.sign({ userId, role }, process.env.ACCESS_TOKEN_SECRET!, {
-    expiresIn: "15m",
-  });
+export const createAccessToken = (
+  userId: string,
+  role: Role,
+  tokenVersion: number,
+) => {
+  return jwt.sign(
+    { userId, role, tokenVersion },
+    process.env.ACCESS_TOKEN_SECRET!,
+    {
+      expiresIn: "15m",
+    },
+  );
 };
 
 export const CreateRefreshToken = (userId: string, jti: string) => {

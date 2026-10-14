@@ -6,6 +6,7 @@ import {
   signUp,
   login,
   updatePassword,
+  logout,
 } from "../controllers/authController.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
 import {
@@ -23,6 +24,8 @@ router.route("/login").post(validateData(loginSchema), login);
 router.route("/refresh").post(refreshAccessToken);
 
 router.route("/me").get(protect, getMe);
+
+router.route("/logout").post(logout);
 
 router
   .route("/update-password")
