@@ -7,6 +7,8 @@ import {
   login,
   updatePassword,
   logout,
+  forgetPassword,
+  resetPassword,
 } from "../controllers/authController.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
 import {
@@ -30,5 +32,8 @@ router.route("/logout").post(logout);
 router
   .route("/update-password")
   .post(protect, validateData(changePasswordSchema), updatePassword);
+
+router.route("/forget-password").post(forgetPassword);
+router.route("/reset-password/:resetToken").post(resetPassword);
 
 export default router;

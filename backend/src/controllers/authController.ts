@@ -4,17 +4,19 @@ import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/appError.js";
+import crypto from "node:crypto";
 import {
   createAccessToken,
   CreateRefreshToken,
 } from "../utils/generateTokens.js";
 import { randomUUID } from "node:crypto";
+import { sendEmail } from "../utils/email.js";
 
 interface RefreshTokenPayload extends jwt.JwtPayload {
   userId: string;
 }
 
-const signUp = catchAsync(
+export const signUp = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (req.body.password !== req.body.passwordConfirm)
       return next(new AppError("Passwords do not match", 400));
@@ -41,7 +43,7 @@ const signUp = catchAsync(
   },
 );
 
-const login = catchAsync(
+export const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findUnique({
       where: { email: req.body.email },
@@ -90,7 +92,7 @@ const login = catchAsync(
   },
 );
 
-const protect = catchAsync(
+export const protect = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     let token;
 
@@ -142,7 +144,7 @@ const protect = catchAsync(
   },
 );
 
-const refreshAccessToken = catchAsync(
+export const refreshAccessToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken;
 
@@ -243,7 +245,7 @@ const refreshAccessToken = catchAsync(
   },
 );
 
-const getMe = catchAsync(
+export const getMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
@@ -265,7 +267,7 @@ const getMe = catchAsync(
   },
 );
 
-const updatePassword = catchAsync(
+export const updatePassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
@@ -304,7 +306,118 @@ const updatePassword = catchAsync(
   },
 );
 
-const logout = catchAsync(
+export const forgetPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await prisma.user.findUnique({
+      where: { email: req.body.email },
+    });
+
+    const message =
+      "If an account with that email exists, you will receive a password reset link.";
+
+    if (!user) {
+      res.status(200).json({
+        status: "success",
+        message,
+      });
+
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: hashedResetToken,
+        passwordResetExpires: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    try {
+      const resetURL = `${req.protocol}://${req.get("host")}/api/v1/users/reset-password/${resetToken}`;
+
+      await sendEmail(
+        user.email,
+        "Reset Password",
+        `You requested a password reset.
+
+Click the link below to reset your password:
+${resetURL}
+
+This link expires in 10 minutes.
+If you did not request this, ignore this email.`,
+      );
+
+      res.status(200).json({
+        status: "success",
+        message,
+      });
+    } catch (error) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordResetToken: null,
+          passwordResetExpires: null,
+        },
+      });
+
+      return next(
+        new AppError(
+          "There was an error sending email, please try again later",
+          500,
+        ),
+      );
+    }
+  },
+);
+
+export const resetPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(req.params.resetToken as string)
+      .digest("hex");
+
+    const user = await prisma.user.findFirst({
+      where: { passwordResetToken: hashedResetToken },
+    });
+
+    if (
+      !user ||
+      !user.passwordResetExpires ||
+      user.passwordResetExpires.getTime() <= Date.now()
+    )
+      return next(new AppError("Invalid or expired token", 400));
+
+    if (req.body.password !== req.body.newPasswordConfirm)
+      return next(new AppError("Passwords are not match", 400));
+
+    const hashedNewPassword = await bcrypt.hash(req.body.password, 12);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedNewPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        passwordChangedAt: new Date(Date.now()),
+        tokenVersion: { increment: 1 },
+      },
+    });
+
+    res
+      .status(200)
+      .json({ status: "success", message: "Password changed successfully" });
+  },
+);
+
+export const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies.refreshToken;
 
@@ -357,12 +470,3 @@ const logout = catchAsync(
       .json({ status: "success", message: "Logged out successfully" });
   },
 );
-export {
-  signUp,
-  login,
-  protect,
-  refreshAccessToken,
-  getMe,
-  updatePassword,
-  logout,
-};

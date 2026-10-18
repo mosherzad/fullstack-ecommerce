@@ -25,6 +25,8 @@ model User {
   refreshToken RefreshTokens[]
   reviews   Review[]
   orders    Order[]
+
+  
   passwordChangedAt    DateTime?
   passwordResetToken   String?
   passwordResetExpires DateTime?
