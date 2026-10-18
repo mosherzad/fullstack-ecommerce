@@ -31,9 +31,9 @@ router.route("/logout").post(logout);
 
 router
   .route("/update-password")
-  .post(protect, validateData(changePasswordSchema), updatePassword);
+  .patch(protect, validateData(changePasswordSchema), updatePassword);
 
 router.route("/forget-password").post(forgetPassword);
-router.route("/reset-password/:resetToken").post(resetPassword);
+router.route("/reset-password/:resetToken").patch(resetPassword);
 
 export default router;
