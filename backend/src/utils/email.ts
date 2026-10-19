@@ -8,6 +8,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+transporter.verify((error) => {
+  if (error) {
+    console.error("Email server configuration error:", error);
+  } else {
+    console.log("Email server is ready to send messages");
+  }
+});
+
 export const sendEmail = async (to: string, subject: string, text: string) => {
   return transporter.sendMail({
     from: process.env.GMAIL_USER,

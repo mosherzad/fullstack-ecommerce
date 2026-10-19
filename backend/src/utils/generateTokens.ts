@@ -15,8 +15,16 @@ export const createAccessToken = (
   );
 };
 
-export const CreateRefreshToken = (userId: string, jti: string) => {
-  return jwt.sign({ userId, jti }, process.env.REFRESH_TOKEN_SECRET!, {
-    expiresIn: "7d",
-  });
+export const CreateRefreshToken = (
+  userId: string,
+  jti: string,
+  tokenVersion: number,
+) => {
+  return jwt.sign(
+    { userId, jti, tokenVersion },
+    process.env.REFRESH_TOKEN_SECRET!,
+    {
+      expiresIn: "7d",
+    },
+  );
 };

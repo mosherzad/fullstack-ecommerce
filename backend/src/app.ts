@@ -7,11 +7,14 @@ import reviewRouter from "./routes/reviewRoute.js";
 import authRouter from "./routes/authRoute.js";
 import cookieParser from "cookie-parser";
 import globalErrorHandler from "./controllers/globalErrorHandler.js";
+import { globalLimiter } from "./middleware/rateLimiterMiddleware.js";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(globalLimiter);
 
 app.use("/api/v1/products", productsRouter);
 app.use("/api/v1/categories", categoryRouter);
