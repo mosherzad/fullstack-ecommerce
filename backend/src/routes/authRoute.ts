@@ -11,6 +11,7 @@ import { validateData } from "../middleware/validationDataMiddleware.js";
 import {
   changePasswordSchema,
   loginSchema,
+  resetPasswordSchema,
   signUpSchema,
 } from "../schemas/userSchema.js";
 import {
@@ -46,7 +47,9 @@ router
   );
 
 router.route("/forget-password").post(emailLimiter, forgetPassword);
-router.route("/reset-password/:resetToken").patch(authLimiter, resetPassword);
+router
+  .route("/reset-password/:resetToken")
+  .patch(authLimiter, validateData(resetPasswordSchema), resetPassword);
 router.route("/resend-verification").post(emailLimiter, sendVerificationEmail);
 router.route("/send-verification-email").post(sendVerificationEmail);
 router.route("/verify-email/:verifyToken").post(verifyEmail);

@@ -4,6 +4,7 @@ import AppError from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import crypto from "crypto";
 import { sendEmail } from "../utils/email.js";
+
 export const sendVerificationEmail = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const genericResponse = () =>
@@ -49,7 +50,7 @@ This link expires in 10 minutes.`,
 
       res.status(200).json({
         status: "success",
-        message: "Check you inbox verification link was send",
+        message: "Check your inbox verification link was send",
       });
     } catch (error) {
       await prisma.user.updateMany({
@@ -59,7 +60,12 @@ This link expires in 10 minutes.`,
           emailVerificationExpires: null,
         },
       });
-      return next(new AppError("Failed to send verification email", 500));
+      return next(
+        new AppError(
+          "Failed to send verification email, please try again later",
+          500,
+        ),
+      );
     }
   },
 );

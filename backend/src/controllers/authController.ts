@@ -10,6 +10,7 @@ import {
 } from "../utils/generateTokens.js";
 import { randomUUID } from "node:crypto";
 import { createAndSendVerificationEmail } from "../services/emailVerification.js";
+import type { Role } from "../generated/prisma/enums.js";
 
 export const signUp = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -151,6 +152,16 @@ export const protect = catchAsync(
     next();
   },
 );
+
+export const restrictTo = (...roles: Role[]) =>
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user!.role))
+      return next(
+        new AppError("You do not have permission to perform this action", 403),
+      );
+
+    next();
+  });
 
 export const getMe = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

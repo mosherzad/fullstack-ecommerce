@@ -20,6 +20,7 @@ export const authLimiter = rateLimit({
     status: "fail",
     message: "Too many authentication attempts. Please try again later.",
   },
+  skipSuccessfulRequests: true,
 });
 
 export const emailLimiter = rateLimit({
@@ -31,4 +32,5 @@ export const emailLimiter = rateLimit({
     status: "fail",
     message: "Too many email requests. Please try again later.",
   },
+  skipSuccessfulRequests: true,
 });

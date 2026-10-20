@@ -24,3 +24,8 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string("Current password is required"),
   newPassword: z.string().min(8, "Password must be at least 8 charachters"),
 });
+
+export const resetPasswordSchema = z.object({
+  newPassword: z.string("Password must be at least 8 charachters"),
+  newPasswordConfirm: z.string("Password Confirm is required"),
+});

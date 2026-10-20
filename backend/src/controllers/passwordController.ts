@@ -30,6 +30,7 @@ export const updatePassword = catchAsync(
         data: {
           password: newHashedPassword,
           passwordChangedAt: new Date(),
+          tokenVersion: { increment: 1 },
         },
       }),
 
@@ -78,9 +79,9 @@ export const forgetPassword = catchAsync(
       },
     });
 
-    try {
-      const resetURL = `${req.protocol}://${req.get("host")}/api/v1/auth/reset-password/${resetToken}`;
+    const resetURL = `${req.protocol}://${req.get("host")}/api/v1/auth/reset-password/${resetToken}`;
 
+    try {
       await sendEmail(
         user.email,
         "Reset Password",
@@ -134,10 +135,10 @@ export const resetPassword = catchAsync(
     )
       return next(new AppError("Invalid or expired token", 400));
 
-    if (req.body.password !== req.body.newPasswordConfirm)
+    if (req.body.newPassword !== req.body.newPasswordConfirm)
       return next(new AppError("Passwords are not match", 400));
 
-    const hashedNewPassword = await bcrypt.hash(req.body.password, 12);
+    const hashedNewPassword = await bcrypt.hash(req.body.newPassword, 12);
 
     await prisma.$transaction([
       prisma.user.update({
