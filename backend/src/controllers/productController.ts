@@ -22,6 +22,7 @@ const getProductById = catchAsync(
     res.status(200).json({ status: "success", data: { product } });
   },
 );
+
 const addProduct = catchAsync(async (req: Request, res: Response) => {
   const newProduct = await prisma.product.create({ data: req.body });
   res.status(201).json({

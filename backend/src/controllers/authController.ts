@@ -53,7 +53,7 @@ export const login = catchAsync(
     });
 
     if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-      return next(new AppError("Invalid credentials", 401));
+      return next(new AppError("Invalid credentials", 400));
     }
 
     if (!user.isEmailVerified) {
@@ -133,7 +133,7 @@ export const protect = catchAsync(
 
       if (user.tokenVersion !== decoded.tokenVersion) {
         return next(
-          new AppError("You are logged out. Please login again.", 401),
+          new AppError("You are logged out, Please login again.", 401),
         );
       }
 

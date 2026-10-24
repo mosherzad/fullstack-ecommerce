@@ -1,30 +1,33 @@
 import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
+import type { Request, Response, NextFunction } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
 
-const getAllCategories = catchAsync(async (req, res, next) => {
+const getAllCategories = catchAsync(async (req: Request, res: Response) => {
   const categoies = await prisma.category.findMany();
 
   res.status(200).json({ status: "success", data: { categoies } });
 });
 
-const getCategoryById = catchAsync(async (req, res, next) => {
-  const category = await prisma.category.findUnique({
-    where: { id: req.params.id as string },
-  });
+const getCategoryById = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const category = await prisma.category.findUnique({
+      where: { id: req.params.id as string },
+    });
 
-  if (!category) return next(new AppError("Record not found", 404));
+    if (!category) return next(new AppError("Record not found", 404));
 
-  res.status(200).json({ status: "success", data: { category } });
-});
+    res.status(200).json({ status: "success", data: { category } });
+  },
+);
 
-const addCategory = catchAsync(async (req, res, next) => {
+const addCategory = catchAsync(async (req: Request, res: Response) => {
   const newCategory = await prisma.category.create({ data: req.body });
 
   res.status(201).json({ status: "success", data: { newCategory } });
 });
 
-const updateCategory = catchAsync(async (req, res, next) => {
+const updateCategory = catchAsync(async (req: Request, res: Response) => {
   const updatedCategory = await prisma.category.update({
     where: { id: req.params.id as string },
     data: req.body,
@@ -37,7 +40,7 @@ const updateCategory = catchAsync(async (req, res, next) => {
   });
 });
 
-const deleteCategory = catchAsync(async (req, res, next) => {
+const deleteCategory = catchAsync(async (req: Request, res: Response) => {
   await prisma.category.delete({
     where: { id: req.params.id as string },
   });
