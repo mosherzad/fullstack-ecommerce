@@ -61,3 +61,17 @@ export const deleteUser = catchAsync(async (req: Request, res: Response) => {
 
   res.status(204).json({ status: "success" });
 });
+
+export const updateMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const me = await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: {
+        name: req.body.name,
+        photo: req.body.photo,
+      },
+    });
+
+    res.status(200).json({ message: "success", data: { me } });
+  },
+);
