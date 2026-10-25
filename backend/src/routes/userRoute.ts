@@ -7,11 +7,15 @@ import {
 } from "../controllers/userController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
 import { protect, restrictTo } from "../controllers/authController.js";
+import { validateData } from "../middleware/validationDataMiddleware.js";
+import { updateUserProfileSchema } from "../schemas/userSchema.js";
 
 const router = express.Router();
 
-router.route("/").get(getUsers);
-router.route("/me").patch(protect, updateMe);
+router.route("/").get(protect, restrictTo("ADMIN"), getUsers);
+router
+  .route("/me")
+  .patch(protect, validateData(updateUserProfileSchema), updateMe);
 router
   .route("/:id")
   .get(validateId("id"), getUserById)

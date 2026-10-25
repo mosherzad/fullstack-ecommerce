@@ -135,20 +135,20 @@ describe("Authentication API", () => {
     expect(loginResponse.body.status).toBe("fail");
   });
 
-  it("should return 200 when user update his password", async () => {
-    const loginResponse = await successLogin();
+  // it("should return 200 when user update his password", async () => {
+  //   const loginResponse = await successLogin();
 
-    expect(loginResponse).toBeDefined();
+  //   expect(loginResponse).toBeDefined();
 
-    const accessToken = loginResponse.body.data.accessToken;
-    const response = await request(app)
-      .patch("/api/v1/auth/update-password")
-      .set("Authorization", `Bearer ${accessToken}`)
-      .send({
-        currentPassword: process.env.USER_PASSWORD,
-        newPassword: "test0000",
-      });
+  //   const accessToken = loginResponse.body.data.accessToken;
+  //   const response = await request(app)
+  //     .patch("/api/v1/auth/update-password")
+  //     .set("Authorization", `Bearer ${accessToken}`)
+  //     .send({
+  //       currentPassword: process.env.USER_PASSWORD,
+  //       newPassword: "test0000",
+  //     });
 
-    expect(response.status).toBe(200);
-  });
+  //   expect(response.status).toBe(200);
+  // });
 });

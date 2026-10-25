@@ -12,7 +12,6 @@ const getProductById = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const product = await prisma.product.findUnique({
       where: { id: req.params.id as string },
-      include: { reviews: true },
     });
 
     if (!product) {

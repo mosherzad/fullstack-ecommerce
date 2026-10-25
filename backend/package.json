@@ -5,7 +5,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run --no-file-parallelism"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
