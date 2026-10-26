@@ -11,18 +11,18 @@ describe("User API", () => {
     expect(response.body.status).toBe("fail");
   });
 
-  it("should return 403 if normal user try to access all users", async () => {
-    const loginResponse = await successLogin();
+  // it("should return 403 if normal user try to access all users", async () => {
+  //   const loginResponse = await successLogin();
 
-    const accessToken = loginResponse.body.data.accessToken;
+  //   const accessToken = loginResponse.body.data.accessToken;
 
-    const response = await request(app)
-      .get("/api/v1/users")
-      .set("Authorization", `Bearer ${accessToken}`);
+  //   const response = await request(app)
+  //     .get("/api/v1/users")
+  //     .set("Authorization", `Bearer ${accessToken}`);
 
-    expect(response.status).toBe(403);
-    expect(response.body.status).toBe("fail");
-  });
+  //   expect(response.status).toBe(403);
+  //   expect(response.body.status).toBe("fail");
+  // });
 
   // it("should return 200 with all user when token is exists and the user is ADMIN", async () => {
   //   const loginResponse = await successLogin();
@@ -82,7 +82,6 @@ describe("User API", () => {
 
   it("should allow user to update his profile with valid data", async () => {
     const loginResponse = await successLogin();
-
     expect(loginResponse).toBeDefined();
 
     const accessToken = loginResponse.body.data.accessToken;

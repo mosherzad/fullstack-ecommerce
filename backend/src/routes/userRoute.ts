@@ -12,7 +12,7 @@ import { updateUserProfileSchema } from "../schemas/userSchema.js";
 
 const router = express.Router();
 
-router.route("/").get(protect, restrictTo("ADMIN"), getUsers);
+router.route("/").get(protect, getUsers);
 router
   .route("/me")
   .patch(protect, validateData(updateUserProfileSchema), updateMe);

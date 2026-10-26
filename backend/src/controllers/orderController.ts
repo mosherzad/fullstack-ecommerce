@@ -5,7 +5,7 @@ import AppError from "../utils/appError.js";
 
 const createOrder = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { items, userId } = req.body;
+    const { items } = req.body;
 
     if (!items || items.length === 0) {
       return next(new AppError("Order must contain at least one item", 400));
@@ -50,7 +50,7 @@ const createOrder = catchAsync(
     const order = await prisma.order.create({
       data: {
         total,
-        user: { connect: { id: userId } },
+        user: { connect: { id: req.user!.userId } },
         items: { create: orderItems },
       },
       include: { items: true },
@@ -88,81 +88,54 @@ const deleteOrder = catchAsync(
   },
 );
 
-const updateOrder = catchAsync(
+const updateOrderStatus = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const order = await prisma.order.findUnique({
       where: { id: req.params.id as string },
-      include: { items: true },
     });
 
-    if (!order) return next(new AppError("Order not found", 404));
-
-    const { items } = req.body;
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return next(new AppError("Order items are required", 400));
+    if (!order) {
+      return next(new AppError("Order not found", 404));
     }
 
-    const products = await prisma.product.findMany({
-      where: {
-        id: {
-          in: items.map((item) => item.productId),
-        },
-      },
-    });
-
-    let total = 0;
-
-    const orderItems = items.map((item) => {
-      const product = products.find((product) => product.id === item.productId);
-
-      if (!product) {
-        throw new AppError(`Product ${item.productId} not found`, 404);
-      }
-
-      if (product.stock < item.quantity) {
-        throw new AppError(`Not enough stock for ${product.name}`, 400);
-      }
-
-      total += Number(product.price) * item.quantity;
-
-      return {
-        productId: product.id,
-        quantity: item.quantity,
-        price: product.price,
-      };
-    });
-
-    const updatedOrder = await prisma.$transaction(async (tx) => {
-      await tx.orderItem.deleteMany({
-        where: {
-          orderId: order.id,
-        },
-      });
-
-      return tx.order.update({
-        where: {
-          id: order.id,
-        },
+    if (req.user!.role === "ADMIN") {
+      const updatedOrder = await prisma.order.update({
+        where: { id: order.id },
         data: {
-          total,
           status: req.body.status,
-          items: {
-            create: orderItems,
-          },
-        },
-        include: {
-          items: true,
         },
       });
+
+      res.status(200).json({
+        status: "success",
+        data: { order: updatedOrder },
+      });
+      return;
+    }
+
+    if (order.userId !== req.user!.userId) {
+      return next(new AppError("You can only cancel your own orders", 403));
+    }
+
+    if (order.status !== "PENDING") {
+      return next(new AppError("Only pending orders can be cancelled", 400));
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id, userId: req.user!.userId },
+      data: { status: "CANCELLED" },
     });
 
     res.status(200).json({
       status: "success",
-      data: {
-        order: updatedOrder,
-      },
+      data: { updatedOrder },
     });
   },
 );
-export { createOrder, getOrderById, getAllOrders, updateOrder, deleteOrder };
+export {
+  createOrder,
+  getOrderById,
+  getAllOrders,
+  updateOrderStatus,
+  deleteOrder,
+};
