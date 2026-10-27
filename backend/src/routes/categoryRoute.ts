@@ -13,18 +13,31 @@ import {
   createCategorySchema,
   updateCategorySchema,
 } from "../schemas/categorySchema.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 
 const router = express.Router();
 
 router
   .route("/")
   .get(getAllCategories)
-  .post(generateSlug, validateData(createCategorySchema), addCategory);
+  .post(
+    protect,
+    restrictTo("ADMIN"),
+    generateSlug,
+    validateData(createCategorySchema),
+    addCategory,
+  );
 
 router
   .route("/:id")
-  .get(validateId, getCategoryById)
-  .patch(validateId, validateData(updateCategorySchema), updateCategory)
-  .delete(validateId, deleteCategory);
+  .get(validateId("id"), getCategoryById)
+  .patch(
+    protect,
+    restrictTo("ADMIN"),
+    validateId("id"),
+    validateData(updateCategorySchema),
+    updateCategory,
+  )
+  .delete(protect, restrictTo("ADMIN"), validateId("id"), deleteCategory);
 
 export default router;
