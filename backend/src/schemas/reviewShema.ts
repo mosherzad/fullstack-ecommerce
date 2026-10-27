@@ -6,7 +6,7 @@ export const createReviewSchema = z.object({
     .min(1, "The rating should be 1 or more")
     .max(5, "The rating should not be greater than 5"),
 
-  comment: z.string(),
+  comment: z.string().optional(),
 });
 
 export const updateReviewSchema = createReviewSchema.partial();

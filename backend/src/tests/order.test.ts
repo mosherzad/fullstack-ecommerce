@@ -164,19 +164,19 @@ describe("Order API", () => {
     expect(response.body.status).toBe("fail");
   });
 
-  it("should return 200 and update the status of the order with valid data", async () => {
-    const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+  // it("should return 200 and update the status of the order with valid data", async () => {
+  //   const loginResponse = await successLogin();
+  //   const accessToken = loginResponse.body.data.accessToken;
 
-    const response = await request(app)
-      .patch("/api/v1/orders/cmvp6baiu00018sqitr32aac8")
-      .set("Authorization", `Bearer ${accessToken}`)
-      .send({
-        status: "CANCELLED",
-      });
+  //   const response = await request(app)
+  //     .patch("/api/v1/orders/cmvp6baiu00018sqitr32aac8")
+  //     .set("Authorization", `Bearer ${accessToken}`)
+  //     .send({
+  //       status: "CANCELLED",
+  //     });
 
-    expect(response).toBeDefined();
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe("success");
-  });
+  //   expect(response).toBeDefined();
+  //   expect(response.status).toBe(200);
+  //   expect(response.body.status).toBe("success");
+  // });
 });

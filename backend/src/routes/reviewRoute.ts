@@ -6,7 +6,7 @@ import {
   getReviewById,
   updateReview,
 } from "../controllers/reviewController.js";
-import { protect } from "../controllers/authController.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
 import {
@@ -16,7 +16,7 @@ import {
 
 const router = exporess.Router();
 
-router.route("/reviews").get(getAllReviews);
+router.route("/reviews").get(protect, restrictTo("ADMIN"), getAllReviews);
 
 router
   .route("/products/:id/reviews")
