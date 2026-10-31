@@ -13,12 +13,14 @@ import {
   createProductSchema,
   updateProductSchema,
 } from "../schemas/productSchema.js";
+import { getAllProductsSchema } from "../schemas/paginationSchema.js";
+import { validateQuery } from "../middleware/validateQuery.js";
 
 const router = express.Router();
 
 router
   .route("/")
-  .get(getAllProducts)
+  .get(validateQuery(getAllProductsSchema), getAllProducts)
   .post(validateData(createProductSchema), generateSlug, addProduct);
 
 router

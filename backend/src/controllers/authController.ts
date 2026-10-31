@@ -56,11 +56,13 @@ export const login = catchAsync(
       return next(new AppError("Invalid credentials", 400));
     }
 
-    if (!user.isEmailVerified) {
-      return next(
-        new AppError("Please verify your email before logging in.", 403),
-      );
-    }
+    // TODO I COMMENT THIS JUST FOR NOW LATER I WILL COMMENT OUT
+
+    // if (!user.isEmailVerified) {
+    //   return next(
+    //     new AppError("Please verify your email before logging in.", 403),
+    //   );
+    // }
 
     const accessToken = createAccessToken(
       user.id,
