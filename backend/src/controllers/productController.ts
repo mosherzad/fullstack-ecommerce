@@ -53,7 +53,7 @@ const getAllProducts = catchAsync(async (req: Request, res: Response) => {
       },
     ];
   }
-  if (typeof categoryName === "string" && categoryName) {
+  if (categoryName) {
     filter.category = {
       name: {
         equals: String(categoryName),
@@ -64,8 +64,8 @@ const getAllProducts = catchAsync(async (req: Request, res: Response) => {
 
   if (maxPrice || minPrice) {
     filter.price = {};
-    if (minPrice) filter.price.gte = Number(minPrice);
-    if (maxPrice) filter.price.lte = Number(maxPrice);
+    if (minPrice) filter.price.gte = minPrice;
+    if (maxPrice) filter.price.lte = maxPrice;
   }
 
   const [products, total] = await Promise.all([
@@ -125,14 +125,37 @@ const getProductById = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const product = await prisma.product.findUnique({
       where: { id: req.params.id as string },
-      include: { reviews: true },
+      include: {
+        reviews: { select: { userId: true, rating: true, comment: true } },
+      },
     });
 
     if (!product) {
       return next(new AppError("Record not found", 404));
     }
 
-    res.status(200).json({ status: "success", data: { product } });
+    const reviewStats = await prisma.review.aggregate({
+      where: {
+        productId: product.id,
+      },
+      _avg: {
+        rating: true,
+      },
+      _count: {
+        _all: true,
+      },
+    });
+
+    const productWithRating = {
+      ...product,
+      averageRating:
+        reviewStats._avg === null
+          ? null
+          : Number(reviewStats._avg.rating?.toFixed(2)),
+
+      reviewCount: reviewStats._count._all,
+    };
+    res.status(200).json({ status: "success", data: { productWithRating } });
   },
 );
 
