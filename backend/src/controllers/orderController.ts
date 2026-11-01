@@ -2,70 +2,27 @@ import type { Request, Response, NextFunction } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
 import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
+import {
+  createOrderService,
+  updateOrderStatusService,
+} from "../services/orderServices.js";
 
 const createOrder = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { items } = req.body;
+    const order = await createOrderService(req.body.items, req.user!.userId);
 
-    if (!items || items.length === 0) {
-      return next(new AppError("Order must contain at least one item", 400));
-    }
-
-    const products = await prisma.product.findMany({
-      where: {
-        id: { in: items.map((item: { productId: string }) => item.productId) },
-      },
+    res.status(201).json({
+      status: "success",
+      data: { order },
     });
-
-    if (products.length !== items.length) {
-      return next(new AppError("One or more products are invalid", 400));
-    }
-
-    let total = 0;
-
-    const orderItems = items.map(
-      (item: { productId: string; quantity: number }) => {
-        const product = products.find(
-          (product) => product.id === item.productId,
-        );
-
-        if (!product) {
-          throw new AppError("Product not found", 404);
-        }
-
-        if (product.stock < item.quantity) {
-          throw new AppError(`Not enough stock for ${product.name}`, 400);
-        }
-
-        total += Number(product.price) * item.quantity;
-
-        return {
-          productId: product.id,
-          quantity: item.quantity,
-          price: product.price,
-        };
-      },
-    );
-
-    const order = await prisma.order.create({
-      data: {
-        total,
-        user: { connect: { id: req.user!.userId } },
-        items: { create: orderItems },
-      },
-      include: { items: true },
-    });
-    res.status(201).json({ status: "success", data: { order } });
   },
 );
 
-const getAllOrders = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const orders = await prisma.order.findMany();
+const getAllOrders = catchAsync(async (req: Request, res: Response) => {
+  const orders = await prisma.order.findMany();
 
-    res.status(200).json({ status: "success", data: { orders } });
-  },
-);
+  res.status(200).json({ status: "success", data: { orders } });
+});
 
 const getOrderById = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -88,50 +45,20 @@ const deleteOrder = catchAsync(
   },
 );
 
-const updateOrderStatus = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const order = await prisma.order.findUnique({
-      where: { id: req.params.id as string },
-    });
+const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+  const updatedOrder = await updateOrderStatusService(
+    req.params.id as string,
+    req.body.status as "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED",
+    req.user!.userId,
+    req.user!.role === "ADMIN",
+  );
 
-    if (!order) {
-      return next(new AppError("Order not found", 404));
-    }
+  res.status(200).json({
+    status: "success",
+    data: { order: updatedOrder },
+  });
+});
 
-    if (req.user!.role === "ADMIN") {
-      const updatedOrder = await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          status: req.body.status,
-        },
-      });
-
-      res.status(200).json({
-        status: "success",
-        data: { order: updatedOrder },
-      });
-      return;
-    }
-
-    if (order.userId !== req.user!.userId) {
-      return next(new AppError("You can only cancel your own orders", 403));
-    }
-
-    if (order.status !== "PENDING") {
-      return next(new AppError("Only pending orders can be cancelled", 400));
-    }
-
-    const updatedOrder = await prisma.order.update({
-      where: { id: order.id, userId: req.user!.userId },
-      data: { status: "CANCELLED" },
-    });
-
-    res.status(200).json({
-      status: "success",
-      data: { updatedOrder },
-    });
-  },
-);
 export {
   createOrder,
   getOrderById,

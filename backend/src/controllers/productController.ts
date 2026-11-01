@@ -16,7 +16,7 @@ const getAllProducts = catchAsync(async (req: Request, res: Response) => {
       total: result.total,
       totalPages: result.totalPages,
     },
-    data: { result },
+    data: { products: result.products },
   });
 });
 
