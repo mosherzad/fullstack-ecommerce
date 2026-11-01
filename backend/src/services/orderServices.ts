@@ -1,5 +1,48 @@
+import type { Prisma } from "../generated/prisma/browser.js";
 import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
+
+export const getAllOrdersService = async (
+  status?: string,
+  page: number = 1,
+  limit: number = 10,
+  sort: string = "createdAt_desc",
+) => {
+  const sortOptions: Record<string, Prisma.OrderOrderByWithRelationInput> = {
+    createdAt_asc: { createdAt: "asc" },
+    createdAt_desc: { createdAt: "desc" },
+    total_asc: { total: "asc" },
+    total_desc: { total: "desc" },
+  };
+
+  const orderBy = sortOptions[sort as string] || { createdAt: "desc" };
+  const offset = (Number(page) - 1) * Number(limit);
+  const where: Prisma.OrderWhereInput = {};
+
+  if (status && typeof status === "string") {
+    where.status = status as Prisma.EnumOrderStatusFilter<"Order">;
+  }
+
+  const [orders, total] = await prisma.$transaction([
+    prisma.order.findMany({
+      where,
+      orderBy,
+      skip: offset,
+      take: Number(limit),
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(total / Number(limit));
+
+  return {
+    orders,
+    total,
+    limit: Number(limit),
+    totalPages,
+    page: Number(page),
+  };
+};
 
 export const createOrderService = async (
   items: { productId: string; quantity: number }[],

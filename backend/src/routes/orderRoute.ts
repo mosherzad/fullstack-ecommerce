@@ -10,12 +10,14 @@ import { validateData } from "../middleware/validationDataMiddleware.js";
 import { createOrderSchema } from "../schemas/orderSchema.js";
 import { updateCategorySchema } from "../schemas/categorySchema.js";
 import { protect, restrictTo } from "../controllers/authController.js";
+import { getAllOrdersSchema } from "../schemas/paginationSchema.js";
+import { validateQuery } from "../middleware/validateQuery.js";
 
 const router = Router();
 
 router
   .route("/")
-  .get(getAllOrders)
+  .get(validateQuery(getAllOrdersSchema), getAllOrders)
   .post(protect, validateData(createOrderSchema), createOrder);
 
 router

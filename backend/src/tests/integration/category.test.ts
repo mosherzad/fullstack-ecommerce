@@ -1,8 +1,8 @@
 import { describe, it, expect, afterEach } from "vitest";
 import request from "supertest";
-import app from "../app.js";
-import { successLogin } from "./helpers/auth.js";
-import prisma from "../lib/prisma.js";
+import app from "../../app.js";
+import { successLogin } from "../helpers/auth.js";
+import prisma from "../../lib/prisma.js";
 
 afterEach(async () => {
   await prisma.category.deleteMany({

@@ -54,3 +54,15 @@ export const getAllProductsSchema = z
       path: ["minPrice"],
     },
   );
+
+export const getAllOrdersSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+
+  limit: z.coerce.number().int().positive().max(100).default(10),
+
+  status: z.enum(["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"]).optional(),
+
+  sort: z
+    .enum(["createdAt_asc", "createdAt_desc", "total_asc", "total_desc"])
+    .default("createdAt_desc"),
+});

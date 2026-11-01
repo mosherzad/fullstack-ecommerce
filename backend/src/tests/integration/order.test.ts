@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import app from "../app.js";
-import { successLogin } from "./helpers/auth.js";
+import app from "../../app.js";
+import { successLogin } from "../helpers/auth.js";
+import prisma from "../../lib/prisma.js";
 
 describe("Order API", () => {
   it("should return 401 when adding order without token (guest user)", async () => {
@@ -179,4 +180,73 @@ describe("Order API", () => {
   //   expect(response.status).toBe(200);
   //   expect(response.body.status).toBe("success");
   // });
+
+  it("should reject an order when stock is insufficient", async () => {
+    const loginResponse = await successLogin();
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const productId = "cmvrvqs8h00007wqi93bss7mt";
+
+    await prisma.product.update({
+      where: { id: productId },
+      data: { stock: 0 },
+    });
+
+    const response = await request(app)
+      .post("/api/v1/orders")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        items: [{ productId, quantity: 1 }],
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe("fail");
+
+    const productAfter = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    expect(productAfter?.stock).toBe(0);
+  });
+
+  it("should restore product stock when an order is cancelled", async () => {
+    const loginResponse = await successLogin();
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const productId = "cmvruxw2n0001lsqi660ccyu5";
+    const quantity = 1;
+
+    const productBefore = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!productBefore) throw new Error("Test product not found");
+
+    const createResponse = await request(app)
+      .post("/api/v1/orders")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        items: [{ productId, quantity }],
+      });
+
+    console.log(createResponse);
+
+    expect(createResponse.status).toBe(201);
+
+    const orderId = createResponse.body.data.order.id;
+
+    const cancelResponse = await request(app)
+      .patch(`/api/v1/orders/${orderId}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ status: "CANCELLED" });
+
+    expect(cancelResponse.status).toBe(200);
+    expect(cancelResponse.body.data.order.status).toBe("CANCELLED");
+
+    const productAfter = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    expect(productAfter?.stock).toBe(productBefore.stock);
+  });
 });

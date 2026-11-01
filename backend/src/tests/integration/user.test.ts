@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import app from "../app.js";
+import app from "../../app.js";
 import request from "supertest";
-import { successLogin } from "./helpers/auth.js";
+import { successLogin } from "../helpers/auth.js";
 
 describe("User API", () => {
   it("should return 401 when try to get users without token", async () => {

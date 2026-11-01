@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import request from "supertest";
-import app from "../app.js";
-import { sendEmail } from "../utils/email.js";
-import { failedLogin, successLogin } from "./helpers/auth.js";
-import { email } from "zod";
+import app from "../../app.js";
+import { sendEmail } from "../../utils/email.js";
+import { failedLogin, successLogin } from "../helpers/auth.js";
 
-vi.mock("../utils/email.js", () => ({
+vi.mock("../../utils/email.js", () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
 }));
 

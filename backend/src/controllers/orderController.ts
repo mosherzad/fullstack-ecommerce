@@ -4,24 +4,40 @@ import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
 import {
   createOrderService,
+  getAllOrdersService,
   updateOrderStatusService,
 } from "../services/orderServices.js";
 
-const createOrder = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const order = await createOrderService(req.body.items, req.user!.userId);
+const createOrder = catchAsync(async (req: Request, res: Response) => {
+  const order = await createOrderService(req.body.items, req.user!.userId);
 
-    res.status(201).json({
-      status: "success",
-      data: { order },
-    });
-  },
-);
+  res.status(201).json({
+    status: "success",
+    data: { order },
+  });
+});
 
 const getAllOrders = catchAsync(async (req: Request, res: Response) => {
-  const orders = await prisma.order.findMany();
+  const result = await getAllOrdersService(
+    req.query.status as string | undefined,
+    Number(req.query.page) || 1,
+    Number(req.query.limit) || 10,
+    req.query.sort as string | undefined,
+  );
 
-  res.status(200).json({ status: "success", data: { orders } });
+  res.status(200).json({
+    status: "success",
+    results: result.orders.length,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: result.totalPages,
+      hasNextPage: result.page < result.totalPages,
+      hasPrevPage: result.page > 1,
+    },
+    data: { orders: result.orders },
+  });
 });
 
 const getOrderById = catchAsync(
@@ -37,13 +53,11 @@ const getOrderById = catchAsync(
   },
 );
 
-const deleteOrder = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    await prisma.order.delete({ where: { id: req.params.id as string } });
+const deleteOrder = catchAsync(async (req: Request, res: Response) => {
+  await prisma.order.delete({ where: { id: req.params.id as string } });
 
-    res.status(200).json({ status: "success" });
-  },
-);
+  res.status(200).json({ status: "success" });
+});
 
 const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   const updatedOrder = await updateOrderStatusService(
