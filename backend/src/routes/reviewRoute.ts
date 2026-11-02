@@ -2,7 +2,6 @@ import exporess from "express";
 import {
   createReview,
   deleteReview,
-  getAllReviews,
   getReviewById,
   updateReview,
 } from "../controllers/reviewController.js";
@@ -15,8 +14,6 @@ import {
 } from "../schemas/reviewShema.js";
 
 const router = exporess.Router();
-
-router.route("/reviews").get(protect, restrictTo("ADMIN"), getAllReviews);
 
 router
   .route("/products/:id/reviews")

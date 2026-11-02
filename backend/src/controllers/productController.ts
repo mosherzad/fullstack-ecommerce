@@ -5,7 +5,10 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { getAllProductsService } from "../services/productServices.js";
 
 const getAllProducts = catchAsync(async (req: Request, res: Response) => {
-  const result = await getAllProductsService(res.locals.validatedQuery);
+  const result = await getAllProductsService(
+    res.locals.validatedQuery,
+    req.user?.role,
+  );
 
   res.status(200).json({
     status: "success",
@@ -58,39 +61,4 @@ const getProductById = catchAsync(
   },
 );
 
-const addProduct = catchAsync(async (req: Request, res: Response) => {
-  const newProduct = await prisma.product.create({ data: req.body });
-  res.status(201).json({
-    status: "success",
-    data: {
-      newProduct,
-    },
-  });
-});
-
-const updateProduct = catchAsync(async (req: Request, res: Response) => {
-  const updatedProduct = await prisma.product.update({
-    where: { id: req.params.id as string },
-    data: req.body,
-  });
-
-  res.status(200).json({
-    status: "success",
-    message: "Product updated successfully",
-    data: { updatedProduct },
-  });
-});
-
-const deleteProduct = catchAsync(async (req: Request, res: Response) => {
-  await prisma.product.delete({ where: { id: req.params.id as string } });
-
-  res.status(200).json({ status: "success" });
-});
-
-export {
-  getAllProducts,
-  getProductById,
-  addProduct,
-  updateProduct,
-  deleteProduct,
-};
+export { getAllProducts, getProductById };

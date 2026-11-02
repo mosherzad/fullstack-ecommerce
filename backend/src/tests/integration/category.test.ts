@@ -25,7 +25,7 @@ describe("Category API", () => {
 
   it("should return 401 when creating a category without login", async () => {
     const response = await request(app)
-      .post("/api/v1/categories")
+      .post("/api/v1/admin/categories")
       .send({ name: `Category ${Date.now()}` });
 
     expect(response.status).toBe(401);
@@ -37,7 +37,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/categories")
+      .post("/api/v1/admin/categories")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ name: `Category ${Date.now()}` });
 
@@ -50,7 +50,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/categories")
+      .post("/api/v1/admin/categories")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ name: `Clothes` });
 
@@ -63,7 +63,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/categories")
+      .post("/api/v1/admin/categories")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         name: "Ok",
@@ -78,7 +78,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/categories")
+      .post("/api/v1/admin/categories")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         name: "Electronic Tv and PC ",
@@ -89,7 +89,15 @@ describe("Category API", () => {
   });
 
   it("should get all categories successfully", async () => {
-    const response = await request(app).get("/api/v1/categories");
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+    });
+
+    const accessToken = loginResponse.body.data.accessToken;
+    const response = await request(app)
+      .get("/api/v1/categories")
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe("success");
@@ -110,7 +118,7 @@ describe("Category API", () => {
 
   it("should return 401 when updating a category without login", async () => {
     const response = await request(app)
-      .patch("/api/v1/categories/nonexistent-category-id")
+      .patch("/api/v1/admin/categories/nonexistent-category-id")
       .send({ name: "Updated category" });
 
     expect(response.status).toBe(401);
@@ -122,7 +130,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .patch("/api/v1/categories/nonexistent-category-id")
+      .patch("/api/v1/admin/categories/nonexistent-category-id")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ name: "Updated category" });
 
@@ -135,7 +143,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .patch("/api/v1/categories/nonexistent-category-id")
+      .patch("/api/v1/admin/categories/cmujuli8o00005wqive11vfl1")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ name: "" });
 
@@ -145,7 +153,7 @@ describe("Category API", () => {
 
   it("should return 401 when deleting a category without login", async () => {
     const response = await request(app).delete(
-      "/api/v1/categories/nonexistent-category-id",
+      "/api/v1/admin/categories/nonexistent-category-id",
     );
 
     expect(response.status).toBe(401);
@@ -157,7 +165,7 @@ describe("Category API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .delete("/api/v1/categories/nonexistent-category-id")
+      .delete("/api/v1/admin/categories/nonexistent-category-id")
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(403);

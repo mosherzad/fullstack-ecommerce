@@ -3,27 +3,6 @@ import AppError from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import type { Request, Response, NextFunction } from "express";
 
-const getAllReviews = catchAsync(async (req: Request, res: Response) => {
-  const reviews = await prisma.review.findMany({
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      product: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  res.status(200).json({ status: "success", data: { reviews } });
-});
-
 const createReview = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { rating, comment } = req.body;
@@ -114,10 +93,4 @@ const deleteReview = catchAsync(
   },
 );
 
-export {
-  getAllReviews,
-  createReview,
-  updateReview,
-  deleteReview,
-  getReviewById,
-};
+export { createReview, updateReview, deleteReview, getReviewById };

@@ -1,32 +1,16 @@
 import express from "express";
-import { generateSlug } from "../middleware/createSlugMiddleware.js";
 import {
-  addProduct,
-  deleteProduct,
   getAllProducts,
   getProductById,
-  updateProduct,
 } from "../controllers/productController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
-import { validateData } from "../middleware/validationDataMiddleware.js";
-import {
-  createProductSchema,
-  updateProductSchema,
-} from "../schemas/productSchema.js";
 import { getAllProductsSchema } from "../schemas/paginationSchema.js";
 import { validateQuery } from "../middleware/validateQuery.js";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(validateQuery(getAllProductsSchema), getAllProducts)
-  .post(validateData(createProductSchema), generateSlug, addProduct);
+router.route("/").get(validateQuery(getAllProductsSchema), getAllProducts);
 
-router
-  .route("/:id")
-  .get(validateId("id"), getProductById)
-  .patch(validateData(updateProductSchema), validateId, updateProduct)
-  .delete(validateId("id"), deleteProduct);
+router.route("/:id").get(validateId("id"), getProductById);
 
 export default router;

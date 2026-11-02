@@ -229,8 +229,6 @@ describe("Order API", () => {
         items: [{ productId, quantity }],
       });
 
-    console.log(createResponse);
-
     expect(createResponse.status).toBe(201);
 
     const orderId = createResponse.body.data.order.id;

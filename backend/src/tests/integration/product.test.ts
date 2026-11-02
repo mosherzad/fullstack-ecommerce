@@ -10,80 +10,148 @@ describe("Product API", () => {
   });
 
   it("should return 400 when add product when name is less than 3 charachters", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      name: "ip",
-      price: 10,
-      stock: 100,
-      categoryId: "cmujuli8o00005wqive11vfl1",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        name: "ip",
+        price: 10,
+        stock: 100,
+        categoryId: "cmujuli8o00005wqive11vfl1",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
   });
 
   it("should return 400 when add product when price is negative number", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      name: "Mouse",
-      price: -1,
-      stock: 100,
-      categoryId: "cmujuli8o00005wqive11vfl1",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        name: "Mouse",
+        price: -1,
+        stock: 100,
+        categoryId: "cmujuli8o00005wqive11vfl1",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
   });
 
   it("should return 400 when price is zero", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      name: "Mouse",
-      price: 0,
-      stock: 25,
-      categoryId: "cmujuli8o00005wqive11vfl1",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        name: "Mouse",
+        price: 0,
+        stock: 25,
+        categoryId: "cmujuli8o00005wqive11vfl1",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
   });
 
   it("should return 400 when add product when missing name field", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      price: 10,
-      stock: 100,
-      categoryId: "cmujuli8o00005wqive11vfl1",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        price: 10,
+        stock: 100,
+        categoryId: "cmujuli8o00005wqive11vfl1",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
   });
 
   it("should return 400 when add product when missing price field", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      name: "Mouse",
-      stock: 100,
-      categoryId: "cmujuli8o00005wqive11vfl1",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        name: "Mouse",
+        stock: 100,
+        categoryId: "cmujuli8o00005wqive11vfl1",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
   });
 
   it("should reject a product with an invalid categoryId", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      name: "Mouse",
-      price: 20,
-      stock: 25,
-      categoryId: "invalid-id",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        name: "Mouse",
+        price: 20,
+        stock: 25,
+        categoryId: "invalid-id",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
   });
 
   it("should return 400 when add product when stock is negative number", async () => {
-    const response = await request(app).post("/api/v1/products").send({
-      name: "Mouse",
-      price: 30,
-      stock: -100,
-      categoryId: "cmujuli8o00005wqive11vfl1",
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
     });
+
+    const accessToken = loginResponse.body.data.accessToken;
+
+    const response = await request(app)
+      .post("/api/v1/admin/products")
+      .send({
+        name: "Mouse",
+        price: 30,
+        stock: -100,
+        categoryId: "cmujuli8o00005wqive11vfl1",
+      })
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");

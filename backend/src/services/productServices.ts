@@ -24,7 +24,10 @@ const sortOptions: Record<string, Prisma.ProductOrderByWithRelationInput> = {
   name_desc: { name: "desc" },
 };
 
-export const getAllProductsService = async (query: ProductQuery) => {
+export const getAllProductsService = async (
+  query: ProductQuery,
+  userRole: string,
+) => {
   const {
     categoryName,
     minPrice,
@@ -35,7 +38,11 @@ export const getAllProductsService = async (query: ProductQuery) => {
     limit,
   } = query;
 
-  const where: Prisma.ProductWhereInput = {};
+  const where: Prisma.ProductWhereInput = {
+    ...(userRole !== "ADMIN" && {
+      stock: { gt: 0 },
+    }),
+  };
 
   if (search) {
     where.OR = [

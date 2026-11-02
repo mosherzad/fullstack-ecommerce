@@ -5,7 +5,7 @@ import { successLogin } from "../helpers/auth.js";
 
 describe("User API", () => {
   it("should return 401 when try to get users without token", async () => {
-    const response = await request(app).get("/api/v1/users");
+    const response = await request(app).get("/api/v1/admin/users");
 
     expect(response.status).toBe(401);
     expect(response.body.status).toBe("fail");
@@ -51,7 +51,7 @@ describe("User API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .delete("/api/v1/users/cmumoowxh00003oqi4c8pn4sm")
+      .delete("/api/v1/admin/users/cmumoowxh00003oqi4c8pn4sm")
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(403);
@@ -66,9 +66,15 @@ describe("User API", () => {
   });
 
   it("should return 200 and user when id is valid and belong to user", async () => {
-    const response = await request(app).get(
-      "/api/v1/users/cmumoowxh00003oqi4c8pn4sm",
-    );
+    const loginResponse = await request(app).post("/api/v1/auth/login").send({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+    });
+
+    const accessToken = loginResponse.body.data.accessToken;
+    const response = await request(app)
+      .get("/api/v1/admin/users/cmumoowxh00003oqi4c8pn4sm")
+      .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response.status).toBe(200);
   });

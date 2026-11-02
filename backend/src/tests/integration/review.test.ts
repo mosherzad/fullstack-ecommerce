@@ -18,7 +18,7 @@ describe("Review API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .get("/api/v1/reviews")
+      .get("/api/v1/admin/reviews")
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(response).toBeDefined();
