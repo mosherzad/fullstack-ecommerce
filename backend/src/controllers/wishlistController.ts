@@ -72,20 +72,3 @@ export const removeFromWishlist = catchAsync(
     });
   },
 );
-
-export const getAllWishlistItems = catchAsync(
-  async (req: Request, res: Response) => {
-    const wishlistItems = await prisma.wishlist.findMany({
-      where: { userId: req.user?.userId },
-      include: {
-        product: { select: { id: true, name: true, price: true, image: true } },
-      },
-    });
-
-    res.status(200).json({
-      status: "success",
-      results: wishlistItems.length,
-      data: { wishlistItems },
-    });
-  },
-);
