@@ -25,6 +25,7 @@ model User {
   refreshToken RefreshTokens[]
   reviews   Review[]
   orders    Order[]
+  wishlist  Wishlist[]
 
   isEmailVerified      Boolean  @default(false)
   emailVerificationToken    String?  
@@ -103,6 +104,7 @@ model Product {
   
   orderItems  OrderItem[]
   reviews     Review[]
+  wishlist    Wishlist[]
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
 
@@ -125,6 +127,19 @@ model Review {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, productId])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
 }
 
 enum Role {
