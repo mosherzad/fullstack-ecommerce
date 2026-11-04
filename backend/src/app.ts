@@ -6,6 +6,7 @@ import orderRouter from "./routes/orderRoute.js";
 import reviewRouter from "./routes/reviewRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 import wishlistRouter from "./routes/wishlistRoute.js";
+import cartRouter from "./routes/cartRoute.js";
 import authRouter from "./routes/authRoute.js";
 import cookieParser from "cookie-parser";
 import globalErrorHandler from "./controllers/globalErrorHandler.js";
@@ -26,6 +27,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", reviewRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/cart", cartRouter);
 export default app;
 
 app.use(globalErrorHandler);

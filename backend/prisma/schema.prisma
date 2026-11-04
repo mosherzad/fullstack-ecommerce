@@ -26,6 +26,7 @@ model User {
   reviews   Review[]
   orders    Order[]
   wishlist  Wishlist[]
+  cart      Cart?
 
   isEmailVerified      Boolean  @default(false)
   emailVerificationToken    String?  
@@ -107,10 +108,34 @@ model Product {
   wishlist    Wishlist[]
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
+  cartItems   CartItem[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+}
+
 
 model Review {
   id        String   @id @default(cuid())
