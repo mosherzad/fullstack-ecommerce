@@ -1,7 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
-import AppError from "../utils/appError.js";
-import prisma from "../lib/prisma.js";
 import {
   addToCartServices,
   clearCartServices,
