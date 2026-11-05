@@ -7,7 +7,7 @@ import prisma from "../../lib/prisma.js";
 describe("Order API", () => {
   it("should return 401 when adding order without token (guest user)", async () => {
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [{ productId: "cmuo0cm3z0000tsqiab60l87z", quantity: 5 }],
@@ -18,7 +18,7 @@ describe("Order API", () => {
 
   it("should return 401 for adding order when token is invalid ", async () => {
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${"Invalid token"}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -34,7 +34,7 @@ describe("Order API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -49,7 +49,7 @@ describe("Order API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -65,7 +65,7 @@ describe("Order API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -81,7 +81,7 @@ describe("Order API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -97,7 +97,7 @@ describe("Order API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -113,7 +113,7 @@ describe("Order API", () => {
     const accessToken = loginResponse.body.data.accessToken;
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
@@ -193,7 +193,7 @@ describe("Order API", () => {
     });
 
     const response = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         items: [{ productId, quantity: 1 }],
@@ -213,7 +213,7 @@ describe("Order API", () => {
     const loginResponse = await successLogin();
     const accessToken = loginResponse.body.data.accessToken;
 
-    const productId = "cmvruxw2n0001lsqi660ccyu5";
+    const productId = "cmuo0cm3z0000tsqiab60l87z";
     const quantity = 1;
 
     const productBefore = await prisma.product.findUnique({
@@ -222,11 +222,24 @@ describe("Order API", () => {
 
     if (!productBefore) throw new Error("Test product not found");
 
+    const cartResponse = await request(app)
+      .post("/api/v1/cart/items")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ productId, quantity });
+
+    expect(cartResponse.status).toBe(200);
+
     const createResponse = await request(app)
-      .post("/api/v1/orders")
+      .post("/api/v1/orders/checkout")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
-        items: [{ productId, quantity }],
+        shippingAddress: {
+          fullName: "Mohammed Sherzad",
+          phone: "07500000000",
+          city: "Duhok",
+          address: "Main Street",
+        },
+        paymentMethod: "COD",
       });
 
     expect(createResponse.status).toBe(201);
