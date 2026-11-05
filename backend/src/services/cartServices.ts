@@ -10,6 +10,8 @@ export const getCartServices = async (userId: string) => {
   if (!cart) {
     throw new AppError("Cart not found", 404);
   }
+
+  return cart;
 };
 export const addToCartServices = async (
   userId: string,

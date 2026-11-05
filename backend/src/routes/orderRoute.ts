@@ -1,18 +1,20 @@
 import { Router } from "express";
 import {
   updateOrderStatus,
-  createOrder,
   getMyOrders,
+  checkout,
 } from "../controllers/orderController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
-import { createOrderSchema } from "../schemas/orderSchema.js";
 import { updateCategorySchema } from "../schemas/categorySchema.js";
 import { protect } from "../controllers/authController.js";
+import { createOrderSchema } from "../schemas/orderSchema.js";
 
 const router = Router();
 
-router.route("/").post(protect, validateData(createOrderSchema), createOrder);
+router
+  .route("/checkout")
+  .post(protect, validateData(createOrderSchema), checkout);
 
 router.route("/my-orders").get(protect, getMyOrders);
 

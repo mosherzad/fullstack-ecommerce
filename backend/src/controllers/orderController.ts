@@ -7,14 +7,14 @@ import {
   updateOrderStatusService,
 } from "../services/orderServices.js";
 
-const createOrder = catchAsync(async (req: Request, res: Response) => {
-  const order = await createOrderService(req.body.items, req.user!.userId);
+// const createOrder = catchAsync(async (req: Request, res: Response) => {
+//   const order = await createOrderService(req.body.items, req.user!.userId);
 
-  res.status(201).json({
-    status: "success",
-    data: { order },
-  });
-});
+//   res.status(201).json({
+//     status: "success",
+//     data: { order },
+//   });
+// });
 
 const getMyOrders = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -28,6 +28,8 @@ const getMyOrders = catchAsync(
         _count: {
           select: { items: true },
         },
+        shippingAddress: true,
+        paymentMethod: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -59,4 +61,43 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { createOrder, getMyOrders, updateOrderStatus, deleteOrder };
+const checkout = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { userId } = req.user!;
+    const { shippingAddress, paymentMethod } = req.body;
+
+    const cart = await prisma.cart.findUnique({
+      where: { userId },
+      include: { items: true },
+    });
+
+    if (!cart || cart.items.length === 0) {
+      return next(new AppError("Your cart is empty", 400));
+    }
+
+    const order = await prisma.$transaction(async (tx) => {
+      const createdOrder = await createOrderService(
+        cart.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        userId,
+        { shippingAddress, paymentMethod },
+        tx,
+      );
+
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id },
+      });
+
+      return createdOrder;
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: { order },
+    });
+  },
+);
+
+export { getMyOrders, updateOrderStatus, deleteOrder, checkout };

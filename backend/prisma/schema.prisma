@@ -55,10 +55,15 @@ model RefreshTokens {
 model Order {
   id        String      @id @default(cuid())
   userId    String
-  status    OrderStatus @default(PENDING)
   total     Decimal     @db.Decimal(10, 2)
-  
+
+  paymentMethod   PaymentMethod
+  paymentStatus PaymentStatus @default(UNPAID)
+  status    OrderStatus @default(PENDING)
+
   items     OrderItem[]
+
+  shippingAddress Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -178,4 +183,16 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+
+enum PaymentMethod {
+  COD
+  STRIPE
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
 }

@@ -1,6 +1,16 @@
-import type { Prisma } from "../generated/prisma/browser.js";
+import type { PaymentMethod, Prisma } from "../generated/prisma/browser.js";
 import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
+
+type CheckoutData = {
+  shippingAddress: {
+    fullName: string;
+    phone: string;
+    city: string;
+    address: string;
+  };
+  paymentMethod: PaymentMethod;
+};
 
 export const getAllOrdersService = async (
   status?: string,
@@ -47,6 +57,8 @@ export const getAllOrdersService = async (
 export const createOrderService = async (
   items: { productId: string; quantity: number }[],
   userId: string,
+  checkout: CheckoutData,
+  tx: Prisma.TransactionClient,
 ) => {
   if (!Array.isArray(items) || items.length === 0) {
     throw new AppError("Order must contain at least one item", 400);
@@ -58,62 +70,64 @@ export const createOrderService = async (
     throw new AppError("Duplicate products are not allowed", 400);
   }
 
-  const order = await prisma.$transaction(async (tx) => {
-    const products = await tx.product.findMany({
-      where: {
-        id: { in: productIds },
-      },
-    });
-
-    if (products.length !== productIds.length) {
-      throw new AppError("One or more products are invalid", 400);
-    }
-
-    let total = 0;
-
-    const orderItems = [];
-
-    for (const item of items) {
-      const product = products.find((p) => p.id === item.productId)!;
-
-      const updated = await tx.product.updateMany({
-        where: {
-          id: product.id,
-          stock: { gte: item.quantity },
-        },
-        data: {
-          stock: { decrement: item.quantity },
-        },
-      });
-
-      if (updated.count === 0) {
-        throw new AppError(`Not enough stock for ${product.name}`, 400);
-      }
-
-      total += Number(product.price) * item.quantity;
-
-      orderItems.push({
-        productId: product.id,
-        quantity: item.quantity,
-        price: product.price,
-      });
-    }
-
-    return tx.order.create({
-      data: {
-        total,
-        userId,
-        items: {
-          create: orderItems,
-        },
-      },
-      include: {
-        items: true,
-      },
-    });
+  const products = await tx.product.findMany({
+    where: {
+      id: { in: productIds },
+    },
   });
 
-  return order;
+  if (products.length !== productIds.length) {
+    throw new AppError("One or more products are invalid", 400);
+  }
+
+  let total = 0;
+  const orderItems = [];
+
+  for (const item of items) {
+    const product = products.find((p) => p.id === item.productId)!;
+
+    const updated = await tx.product.updateMany({
+      where: {
+        id: product.id,
+        stock: { gte: item.quantity },
+      },
+      data: {
+        stock: { decrement: item.quantity },
+      },
+    });
+
+    if (updated.count === 0) {
+      throw new AppError(`Not enough stock for ${product.name}`, 400);
+    }
+
+    total += Number(product.price) * item.quantity;
+
+    orderItems.push({
+      productId: product.id,
+      quantity: item.quantity,
+      price: product.price,
+    });
+  }
+
+  return tx.order.create({
+    data: {
+      total,
+      userId,
+      shippingAddress: checkout.shippingAddress,
+      paymentMethod: checkout.paymentMethod,
+      items: {
+        create: orderItems,
+      },
+    },
+    select: {
+      id: true,
+      userId: true,
+      total: true,
+      status: true,
+      paymentMethod: true,
+      items: true,
+    },
+  });
 };
 
 export const updateOrderStatusService = async (
