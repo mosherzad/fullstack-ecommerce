@@ -8,6 +8,7 @@ import adminRouter from "./routes/adminRoute.js";
 import wishlistRouter from "./routes/wishlistRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import authRouter from "./routes/authRoute.js";
+import couponRoute from "./routes/couponRoute.js";
 import cookieParser from "cookie-parser";
 import globalErrorHandler from "./controllers/globalErrorHandler.js";
 import { globalLimiter } from "./middleware/rateLimiterMiddleware.js";
@@ -28,6 +29,7 @@ app.use("/api/v1", reviewRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/cart", cartRouter);
+app.use("/api/v1/coupons", couponRoute);
 export default app;
 
 app.use(globalErrorHandler);
