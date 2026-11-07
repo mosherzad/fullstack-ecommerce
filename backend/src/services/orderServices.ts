@@ -111,6 +111,8 @@ export const createOrderService = async (
 
   return tx.order.create({
     data: {
+      subtotal: total,
+      discountAmount: 0,
       total,
       userId,
       shippingAddress: checkout.shippingAddress,
