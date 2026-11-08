@@ -23,7 +23,7 @@ const globalErrorHandler = (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"
   ) {
-    error = new AppError("Duplicate record. This value already exists.", 400);
+    error = new AppError("Duplicate record. This value already exists.", 409);
   }
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({

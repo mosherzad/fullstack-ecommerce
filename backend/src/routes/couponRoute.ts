@@ -4,6 +4,7 @@ import {
   createCoupon,
   deleteCoupon,
   getAllCoupons,
+  getCouponById,
   updateCoupon,
 } from "../controllers/admin/couponController.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
@@ -27,6 +28,7 @@ router
 
 router
   .route("/:id")
+  .get(protect, restrictTo("ADMIN"), validateId("id"), getCouponById)
   .patch(
     protect,
     restrictTo("ADMIN"),

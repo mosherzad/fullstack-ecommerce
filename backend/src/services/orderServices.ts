@@ -113,15 +113,31 @@ export const createOrderService = async (
 
   let coupon;
   if (checkout.code) {
-    const selectedCoupom = await tx.coupon.findUnique({
+    const selectedCoupon = await tx.coupon.findUnique({
       where: { code: checkout.code },
     });
 
-    if (!selectedCoupom) {
+    if (!selectedCoupon) {
       throw new AppError("Coupon nou found", 404);
     }
 
-    coupon = await validateCouponService(selectedCoupom.code, subtotal);
+    coupon = await validateCouponService(selectedCoupon.code, subtotal);
+
+    const updatedCoupon = await tx.coupon.updateMany({
+      where: {
+        id: selectedCoupon.id,
+        ...(selectedCoupon.usageLimit !== null
+          ? { usedCount: { lt: selectedCoupon.usageLimit } }
+          : {}),
+      },
+      data: {
+        usedCount: { increment: 1 },
+      },
+    });
+
+    if (updatedCoupon.count === 0) {
+      throw new AppError("Coupon usage limit has been reached", 400);
+    }
   }
 
   const discountAmount = coupon?.discountAmount ?? 0;
@@ -176,7 +192,7 @@ export const updateOrderStatusService = async (
       }
 
       if (status !== "CANCELLED") {
-        throw new AppError("You can only cancel your orders", 403);
+        throw new AppError("You can only cancel your orders", 400);
       }
     }
 

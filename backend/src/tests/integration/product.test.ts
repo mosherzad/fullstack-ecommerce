@@ -132,7 +132,7 @@ describe("Product API", () => {
       })
       .set("Authorization", `Bearer ${accessToken}`);
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(409);
   });
 
   it("should return 400 when add product when stock is negative number", async () => {

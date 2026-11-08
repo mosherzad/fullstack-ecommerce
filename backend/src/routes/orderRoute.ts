@@ -3,12 +3,16 @@ import {
   updateOrderStatus,
   getMyOrders,
   checkout,
+  getOrderById,
 } from "../controllers/orderController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
 import { updateCategorySchema } from "../schemas/categorySchema.js";
 import { protect } from "../controllers/authController.js";
-import { createOrderSchema } from "../schemas/orderSchema.js";
+import {
+  createOrderSchema,
+  updateOrderSchema,
+} from "../schemas/orderSchema.js";
 
 const router = Router();
 
@@ -20,10 +24,11 @@ router.route("/my-orders").get(protect, getMyOrders);
 
 router
   .route("/:id")
+  .get(validateId("id"), getOrderById)
   .patch(
     protect,
     validateId("id"),
-    validateData(updateCategorySchema),
+    validateData(updateOrderSchema),
     updateOrderStatus,
   ); // TODO just for test i will remove restrictTo middleware after that i will added again
 // .delete(protect, validateId("id"), deleteOrder);
