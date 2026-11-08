@@ -29,6 +29,7 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(["COD", "STRIPE"], {
     error: "Invalid payment method",
   }),
+  code: z.string().optional(),
 });
 
 export const updateOrderSchema = z.object({

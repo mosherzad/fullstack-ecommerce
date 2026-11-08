@@ -64,7 +64,7 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
 const checkout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.user!;
-    const { shippingAddress, paymentMethod } = req.body;
+    const { shippingAddress, paymentMethod, code } = req.body;
 
     const cart = await prisma.cart.findUnique({
       where: { userId },
@@ -82,7 +82,7 @@ const checkout = catchAsync(
           quantity: item.quantity,
         })),
         userId,
-        { shippingAddress, paymentMethod },
+        { shippingAddress, paymentMethod, code },
         tx,
       );
 

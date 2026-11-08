@@ -1,11 +1,8 @@
 import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
 
-export const validateCouponService = async (
-  couponId: string,
-  subTotal: number,
-) => {
-  const coupon = await prisma.coupon.findUnique({ where: { id: couponId } });
+export const validateCouponService = async (code: string, subtotal: number) => {
+  const coupon = await prisma.coupon.findUnique({ where: { code } });
 
   if (!coupon) throw new AppError("Coupon not found", 404);
 
@@ -27,10 +24,27 @@ export const validateCouponService = async (
 
   if (
     coupon.minOrderAmount !== null &&
-    subTotal < Number(coupon.minOrderAmount)
+    subtotal < Number(coupon.minOrderAmount)
   ) {
     throw new AppError("Minimum order amount not reached", 400);
   }
 
-  return coupon;
+  let discountAmount = 0;
+
+  if (coupon.discountType === "PERCENTAGE") {
+    discountAmount = (subtotal * Number(coupon.discountValue)) / 100;
+
+    if (coupon.maxDiscount) {
+      discountAmount = Math.min(discountAmount, Number(coupon.maxDiscount));
+    }
+  } else {
+    discountAmount = Number(coupon.discountValue);
+  }
+
+  discountAmount = Math.min(discountAmount, subtotal);
+
+  return {
+    ...coupon,
+    discountAmount,
+  };
 };

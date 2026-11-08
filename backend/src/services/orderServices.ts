@@ -1,6 +1,7 @@
 import type { PaymentMethod, Prisma } from "../generated/prisma/browser.js";
 import prisma from "../lib/prisma.js";
 import AppError from "../utils/appError.js";
+import { validateCouponService } from "./validateCouponServices.js";
 
 type CheckoutData = {
   shippingAddress: {
@@ -10,6 +11,7 @@ type CheckoutData = {
     address: string;
   };
   paymentMethod: PaymentMethod;
+  code?: string;
 };
 
 export const getAllOrdersService = async (
@@ -80,7 +82,7 @@ export const createOrderService = async (
     throw new AppError("One or more products are invalid", 400);
   }
 
-  let total = 0;
+  let subtotal = 0;
   const orderItems = [];
 
   for (const item of items) {
@@ -100,7 +102,7 @@ export const createOrderService = async (
       throw new AppError(`Not enough stock for ${product.name}`, 400);
     }
 
-    total += Number(product.price) * item.quantity;
+    subtotal += Number(product.price) * item.quantity;
 
     orderItems.push({
       productId: product.id,
@@ -109,11 +111,29 @@ export const createOrderService = async (
     });
   }
 
+  let coupon;
+  if (checkout.code) {
+    const selectedCoupom = await tx.coupon.findUnique({
+      where: { code: checkout.code },
+    });
+
+    if (!selectedCoupom) {
+      throw new AppError("Coupon nou found", 404);
+    }
+
+    coupon = await validateCouponService(selectedCoupom.code, subtotal);
+  }
+
+  const discountAmount = coupon?.discountAmount ?? 0;
+  const finalTotal = subtotal - Number(discountAmount);
+
+  console.log(checkout);
   return tx.order.create({
     data: {
-      subtotal: total,
-      discountAmount: 0,
-      total,
+      subtotal,
+      discountAmount,
+      total: finalTotal,
+      couponId: coupon?.id ?? null,
       userId,
       shippingAddress: checkout.shippingAddress,
       paymentMethod: checkout.paymentMethod,
@@ -124,6 +144,8 @@ export const createOrderService = async (
     select: {
       id: true,
       userId: true,
+      subtotal: true,
+      discountAmount: true,
       total: true,
       status: true,
       paymentMethod: true,
