@@ -143,7 +143,6 @@ export const createOrderService = async (
   const discountAmount = coupon?.discountAmount ?? 0;
   const finalTotal = subtotal - Number(discountAmount);
 
-  console.log(checkout);
   return tx.order.create({
     data: {
       subtotal,

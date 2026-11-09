@@ -6,6 +6,7 @@ import {
   createOrderService,
   updateOrderStatusService,
 } from "../services/orderServices.js";
+import { sendOrderConfirmationEmail } from "../services/orderEmailServices.js";
 
 // const createOrder = catchAsync(async (req: Request, res: Response) => {
 //   const order = await createOrderService(req.body.items, req.user!.userId);
@@ -87,6 +88,15 @@ const checkout = catchAsync(
       return next(new AppError("Your cart is empty", 400));
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
     const order = await prisma.$transaction(async (tx) => {
       const createdOrder = await createOrderService(
         cart.items.map((item) => ({
@@ -104,6 +114,18 @@ const checkout = catchAsync(
 
       return createdOrder;
     });
+
+    try {
+      await sendOrderConfirmationEmail(user.email, {
+        id: order.id,
+        status: order.status,
+        subtotal: Number(order.subtotal),
+        discountAmount: Number(order.discountAmount),
+        total: Number(order.total),
+      });
+    } catch (error) {
+      console.error("Failed to send order confirmation:", error);
+    }
 
     res.status(201).json({
       status: "success",
