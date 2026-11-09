@@ -6,7 +6,12 @@ import {
   createOrderService,
   updateOrderStatusService,
 } from "../services/orderServices.js";
-import { sendOrderConfirmationEmail } from "../services/orderEmailServices.js";
+import {
+  sendOrderCancelledEmail,
+  sendOrderConfirmationEmail,
+  sendOrderDeliveredEmail,
+  sendOrderShippedEmail,
+} from "../services/orderEmailServices.js";
 
 // const createOrder = catchAsync(async (req: Request, res: Response) => {
 //   const order = await createOrderService(req.body.items, req.user!.userId);
@@ -60,19 +65,65 @@ const deleteOrder = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({ status: "success" });
 });
 
-const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
-  const updatedOrder = await updateOrderStatusService(
-    req.params.id as string,
-    req.body.status as "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED",
-    req.user!.userId,
-    req.user!.role === "ADMIN",
-  );
+const updateOrderStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const updatedOrder = await updateOrderStatusService(
+      req.params.id as string,
+      req.body.status as "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED",
+      req.user!.userId,
+      req.user!.role === "ADMIN",
+    );
 
-  res.status(200).json({
-    status: "success",
-    data: { order: updatedOrder },
-  });
-});
+    const orderOwner = await prisma.user.findUnique({
+      where: { id: updatedOrder!.userId },
+      select: { email: true },
+    });
+
+    if (!orderOwner) {
+      throw new AppError("User not found", 404);
+    }
+
+    if (updatedOrder) {
+      try {
+        if (updatedOrder.status === "SHIPPED") {
+          await sendOrderShippedEmail(orderOwner.email, {
+            id: updatedOrder.id,
+            status: updatedOrder.status,
+            discountAmount: Number(updatedOrder.discountAmount),
+            subtotal: Number(updatedOrder.subtotal),
+            total: Number(updatedOrder.total),
+          });
+        }
+
+        if (updatedOrder.status === "DELIVERED") {
+          await sendOrderDeliveredEmail(orderOwner.email, {
+            id: updatedOrder.id,
+            status: updatedOrder.status,
+            discountAmount: Number(updatedOrder.discountAmount),
+            subtotal: Number(updatedOrder.subtotal),
+            total: Number(updatedOrder.total),
+          });
+        }
+
+        if (updatedOrder.status === "CANCELLED") {
+          await sendOrderCancelledEmail(orderOwner.email, {
+            id: updatedOrder.id,
+            status: updatedOrder.status,
+            discountAmount: Number(updatedOrder.discountAmount),
+            subtotal: Number(updatedOrder.subtotal),
+            total: Number(updatedOrder.total),
+          });
+        }
+      } catch (error) {
+        console.error("Failed to send order status email:", error);
+      }
+    }
+    res.status(200).json({
+      status: "success",
+      data: { order: updatedOrder },
+    });
+  },
+);
 
 const checkout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
