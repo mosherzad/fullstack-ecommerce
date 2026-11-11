@@ -12,6 +12,11 @@ import { randomUUID } from "node:crypto";
 import { createAndSendVerificationEmail } from "../services/emailVerification.js";
 import type { Role } from "../generated/prisma/enums.js";
 
+type User = {
+  name: string;
+  email: string;
+  role: string;
+};
 export const signUp = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (req.body.password !== req.body.passwordConfirm)
@@ -56,6 +61,8 @@ export const login = catchAsync(
       return next(new AppError("Invalid credentials", 400));
     }
 
+    const { name, email, role } = user;
+
     // TODO I COMMENT THIS JUST FOR NOW LATER I WILL COMMENT OUT
 
     // if (!user.isEmailVerified) {
@@ -99,7 +106,7 @@ export const login = catchAsync(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
-      .json({ status: "success", data: { user, accessToken } });
+      .json({ status: "success", data: { name, email, role, accessToken } });
   },
 );
 

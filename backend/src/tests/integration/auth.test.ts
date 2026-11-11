@@ -152,4 +152,28 @@ describe("Authentication API", () => {
 
   //   expect(response.status).toBe(200);
   // });
+
+  it("should register a new user successfully", async () => {
+    const response = await request(app).post("/api/v1/auth/register").send({
+      name: "Test User",
+      email: "newuser@gmail.com",
+      password: "TestPassword123!",
+      passwordConfirm: "TestPassword123!",
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.status).toBe("success");
+  });
+
+  it("should return 400 when registering with an existing email", async () => {
+    const response = await request(app).post("/api/v1/auth/register").send({
+      name: "Existing User",
+      email: process.env.USER_EMAIL,
+      password: "TestPassword123!",
+      passwordConfirm: "TestPassword123!",
+    });
+
+    expect(response.status).toBe(409);
+    expect(response.body.status).toBe("fail");
+  });
 });

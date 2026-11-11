@@ -22,30 +22,28 @@ import {
 //   });
 // });
 
-const getMyOrders = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const orders = await prisma.order.findMany({
-      where: { userId: req.user!.userId },
-      select: {
-        id: true,
-        status: true,
-        total: true,
-        createdAt: true,
-        _count: {
-          select: { items: true },
-        },
-        shippingAddress: true,
-        paymentMethod: true,
+const getMyOrders = catchAsync(async (req: Request, res: Response) => {
+  const orders = await prisma.order.findMany({
+    where: { userId: req.user!.userId },
+    select: {
+      id: true,
+      status: true,
+      total: true,
+      createdAt: true,
+      _count: {
+        select: { items: true },
       },
-      orderBy: { createdAt: "desc" },
-    });
+      shippingAddress: true,
+      paymentMethod: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-    if (!orders) {
-      return next(new AppError("Order not found", 404));
-    }
-    res.status(200).json({ status: "success", data: { orders } });
-  },
-);
+  if (!orders) {
+    throw new AppError("Order not found", 404);
+  }
+  res.status(200).json({ status: "success", data: { orders } });
+});
 
 const getOrderById = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -53,7 +51,7 @@ const getOrderById = catchAsync(
       where: { id: req.params.id as string },
     });
 
-    if (!order) return next(new AppError("Order not found", 404));
+    if (!order) throw new AppError("Order not found", 404);
 
     res.status(200).json({ status: "success", data: { order } });
   },
@@ -65,124 +63,110 @@ const deleteOrder = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({ status: "success" });
 });
 
-const updateOrderStatus = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const updatedOrder = await updateOrderStatusService(
-      req.params.id as string,
-      req.body.status as "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED",
-      req.user!.userId,
-      req.user!.role === "ADMIN",
-    );
+const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+  const updatedOrder = await updateOrderStatusService(
+    req.params.id as string,
+    req.body.status as "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED",
+    req.user!.userId,
+    req.user!.role === "ADMIN",
+  );
 
-    const orderOwner = await prisma.user.findUnique({
-      where: { id: updatedOrder!.userId },
-      select: { email: true },
-    });
+  if (!updatedOrder) {
+    throw new AppError("Order not found", 404);
+  }
 
-    if (!orderOwner) {
-      throw new AppError("User not found", 404);
-    }
+  const orderOwner = await prisma.user.findUnique({
+    where: { id: updatedOrder.userId },
+    select: { email: true },
+  });
 
-    if (updatedOrder) {
-      try {
-        if (updatedOrder.status === "SHIPPED") {
-          await sendOrderShippedEmail(orderOwner.email, {
-            id: updatedOrder.id,
-            status: updatedOrder.status,
-            discountAmount: Number(updatedOrder.discountAmount),
-            subtotal: Number(updatedOrder.subtotal),
-            total: Number(updatedOrder.total),
-          });
-        }
+  if (!orderOwner) {
+    throw new AppError("User not found", 404);
+  }
 
-        if (updatedOrder.status === "DELIVERED") {
-          await sendOrderDeliveredEmail(orderOwner.email, {
-            id: updatedOrder.id,
-            status: updatedOrder.status,
-            discountAmount: Number(updatedOrder.discountAmount),
-            subtotal: Number(updatedOrder.subtotal),
-            total: Number(updatedOrder.total),
-          });
-        }
-
-        if (updatedOrder.status === "CANCELLED") {
-          await sendOrderCancelledEmail(orderOwner.email, {
-            id: updatedOrder.id,
-            status: updatedOrder.status,
-            discountAmount: Number(updatedOrder.discountAmount),
-            subtotal: Number(updatedOrder.subtotal),
-            total: Number(updatedOrder.total),
-          });
-        }
-      } catch (error) {
-        console.error("Failed to send order status email:", error);
-      }
-    }
-    res.status(200).json({
-      status: "success",
-      data: { order: updatedOrder },
-    });
-  },
-);
-
-const checkout = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { userId } = req.user!;
-    const { shippingAddress, paymentMethod, code } = req.body;
-
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-      include: { items: true },
-    });
-
-    if (!cart || cart.items.length === 0) {
-      return next(new AppError("Your cart is empty", 400));
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true },
-    });
-
-    if (!user) {
-      return next(new AppError("User not found", 404));
-    }
-
-    const order = await prisma.$transaction(async (tx) => {
-      const createdOrder = await createOrderService(
-        cart.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-        userId,
-        { shippingAddress, paymentMethod, code },
-        tx,
-      );
-
-      await tx.cartItem.deleteMany({
-        where: { cartId: cart.id },
-      });
-
-      return createdOrder;
-    });
+  if (updatedOrder) {
+    const orderEmailData = {
+      id: updatedOrder.id,
+      status: updatedOrder.status,
+      discountAmount: Number(updatedOrder.discountAmount),
+      subtotal: Number(updatedOrder.subtotal),
+      total: Number(updatedOrder.total),
+    };
 
     try {
-      await sendOrderConfirmationEmail(user.email, {
-        id: order.id,
-        status: order.status,
-        subtotal: Number(order.subtotal),
-        discountAmount: Number(order.discountAmount),
-        total: Number(order.total),
-      });
+      if (updatedOrder.status === "SHIPPED") {
+        await sendOrderShippedEmail(orderOwner.email, orderEmailData);
+      } else if (updatedOrder.status === "DELIVERED") {
+        await sendOrderDeliveredEmail(orderOwner.email, orderEmailData);
+      } else if (updatedOrder.status === "CANCELLED") {
+        await sendOrderCancelledEmail(orderOwner.email, orderEmailData);
+      }
     } catch (error) {
-      console.error("Failed to send order confirmation:", error);
+      console.error("Failed to send order status email:", error);
     }
+  }
+  res.status(200).json({
+    status: "success",
+    data: { order: updatedOrder },
+  });
+});
 
-    res.status(201).json({
-      status: "success",
-      data: { order },
+const checkout = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user!;
+  const { shippingAddress, paymentMethod, code } = req.body;
+
+  const cart = await prisma.cart.findUnique({
+    where: { userId },
+    include: { items: true },
+  });
+
+  if (!cart || cart.items.length === 0) {
+    throw new AppError("Your cart is empty", 400);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  const order = await prisma.$transaction(async (tx) => {
+    const createdOrder = await createOrderService(
+      cart.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+      userId,
+      { shippingAddress, paymentMethod, code },
+      tx,
+    );
+
+    await tx.cartItem.deleteMany({
+      where: { cartId: cart.id },
     });
-  },
-);
+
+    return createdOrder;
+  });
+
+  try {
+    await sendOrderConfirmationEmail(user.email, {
+      id: order.id,
+      status: order.status,
+      subtotal: Number(order.subtotal),
+      discountAmount: Number(order.discountAmount),
+      total: Number(order.total),
+    });
+  } catch (error) {
+    console.error("Failed to send order confirmation:", error);
+  }
+
+  res.status(201).json({
+    status: "success",
+    data: { order },
+  });
+});
 
 export { getMyOrders, getOrderById, updateOrderStatus, deleteOrder, checkout };
