@@ -154,7 +154,7 @@ describe("Authentication API", () => {
   // });
 
   it("should register a new user successfully", async () => {
-    const response = await request(app).post("/api/v1/auth/register").send({
+    const response = await request(app).post("/api/v1/auth/sign-up").send({
       name: "Test User",
       email: "newuser@gmail.com",
       password: "TestPassword123!",

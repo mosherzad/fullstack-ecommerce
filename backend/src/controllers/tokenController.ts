@@ -8,6 +8,8 @@ import { randomUUID } from "node:crypto";
 
 interface RefreshTokenPayload extends jwt.JwtPayload {
   userId: string;
+  jti: string;
+  tokenVersion: number;
 }
 
 export const refreshAccessToken = catchAsync(
@@ -18,13 +20,18 @@ export const refreshAccessToken = catchAsync(
       return next(new AppError("Refresh token is required", 401));
     }
 
-    const payload = jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET!,
-    ) as RefreshTokenPayload;
+    let payload;
+    try {
+      payload = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET!,
+      ) as RefreshTokenPayload;
 
-    if (!payload.userId || !payload.jti) {
-      return next(new AppError("Invalid refresh token", 401));
+      if (!payload.userId || !payload.jti) {
+        return next(new AppError("Invalid refresh token", 401));
+      }
+    } catch (error) {
+      throw new AppError("Token verification is failed", 401);
     }
 
     const refreshTokenRecord = await prisma.refreshTokens.findFirst({
@@ -107,8 +114,16 @@ export const refreshAccessToken = catchAsync(
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
       path: "/",
     });
 

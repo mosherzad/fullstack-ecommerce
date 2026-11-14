@@ -35,7 +35,7 @@ router.route("/sign-up").post(authLimiter, validateData(signUpSchema), signUp);
 router.route("/login").post(authLimiter, validateData(loginSchema), login);
 router.route("/refresh").post(authLimiter, refreshAccessToken);
 router.route("/me").get(protect, getMe);
-router.route("/logout").post(protect, logout);
+router.route("/logout").post(logout);
 
 router
   .route("/update-password")
@@ -51,7 +51,9 @@ router
   .route("/reset-password/:resetToken")
   .patch(authLimiter, validateData(resetPasswordSchema), resetPassword);
 router.route("/resend-verification").post(emailLimiter, sendVerificationEmail);
-router.route("/send-verification-email").post(sendVerificationEmail);
+router
+  .route("/send-verification-email")
+  .post(emailLimiter, sendVerificationEmail);
 router.route("/verify-email/:verifyToken").post(verifyEmail);
 
 export default router;

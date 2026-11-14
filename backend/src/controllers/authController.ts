@@ -112,14 +112,7 @@ export const login = catchAsync(
 
 export const protect = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    let token;
-
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-    }
+    let token = req.cookies.accessToken;
 
     if (!token)
       return next(
@@ -194,56 +187,49 @@ export const getMe = catchAsync(
   },
 );
 
-export const logout = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies.refreshToken;
+export const logout = catchAsync(async (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
 
-    if (token) {
-      try {
-        const decoded = jwt.verify(
-          token,
-          process.env.REFRESH_TOKEN_SECRET!,
-        ) as {
-          jti: string;
-          userId: string;
-        };
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET!) as {
+        jti: string;
+        userId: string;
+      };
 
-        await prisma.$transaction([
-          prisma.user.update({
-            where: { id: decoded.userId },
-            data: {
-              tokenVersion: { increment: 1 },
-            },
-          }),
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: decoded.userId },
+          data: {
+            tokenVersion: { increment: 1 },
+          },
+        }),
 
-          prisma.refreshTokens.deleteMany({ where: { jti: decoded.jti } }),
-        ]);
-      } catch (error) {
-        if (
-          error instanceof jwt.JsonWebTokenError ||
-          error instanceof jwt.TokenExpiredError
-        ) {
-          return next(new AppError("Invalid or expired token", 401));
-        }
-
-        return next(error);
+        prisma.refreshTokens.deleteMany({
+          where: { jti: decoded.jti },
+        }),
+      ]);
+    } catch (error) {
+      if (!(error instanceof jwt.JsonWebTokenError)) {
+        throw error;
       }
     }
+  }
 
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
 
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
 
-    res
-      .status(200)
-      .json({ status: "success", message: "Logged out successfully" });
-  },
-);
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully",
+  });
+});
