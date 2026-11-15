@@ -6,11 +6,11 @@ import app from "../../app.js";
 describe("POST /api/v1/orders/checkout", () => {
   it("Should return 400 if the name is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           phone: "07500000000",
@@ -26,11 +26,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if the phone is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -46,11 +46,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if the city is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -66,11 +66,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if the address is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -86,11 +86,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if shipping address is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         paymentMethod: "COD",
       });
@@ -101,11 +101,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if payment method is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -121,11 +121,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if payment method is invalid", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -142,11 +142,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if the name is too short", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "A",
@@ -163,11 +163,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if the phone number is invalid", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -184,11 +184,11 @@ describe("POST /api/v1/orders/checkout", () => {
 
   it("Should return 400 if the address is too short", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",

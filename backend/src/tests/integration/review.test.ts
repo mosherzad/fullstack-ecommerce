@@ -15,11 +15,10 @@ afterEach(async () => {
 describe("Review API", () => {
   it("should return 403 when normal user try to access the reviews route", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
-
+    const cookies = loginResponse.headers["set-cookie"];
     const response = await request(app)
       .get("/api/v1/admin/reviews")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response).toBeDefined();
     expect(response.status).toBe(403);
@@ -28,11 +27,11 @@ describe("Review API", () => {
 
   it("should return 400 when adding review with empty data", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/cmujumilz00015wqig8zzp6ro/reviews")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({});
 
     expect(response).toBeDefined();
@@ -42,11 +41,11 @@ describe("Review API", () => {
 
   it("should return 400 when adding review and rating is negative number", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/cmujumilz00015wqig8zzp6ro/reviews")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         rating: -5,
       });
@@ -58,11 +57,11 @@ describe("Review API", () => {
 
   it("should return 400 when adding review and rating is zero", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/cmujumilz00015wqig8zzp6ro/reviews")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         rating: 0,
       });
@@ -74,11 +73,11 @@ describe("Review API", () => {
 
   it("should return 400 when adding review and rating is exceeds 5", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/cmujumilz00015wqig8zzp6ro/reviews")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         rating: 6,
       });
@@ -90,13 +89,13 @@ describe("Review API", () => {
 
   it("should return 404 when adding review with product that does not exists", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post(
         "/api/v1/products/cmuo0cm3z0000tsqiab60l87zzzzzzzzzzzzzzzzz/reviews",
       )
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         comment: "Perfect product",
         rating: 5,
@@ -109,7 +108,7 @@ describe("Review API", () => {
 
   it("should return 401 when adding review with invalid id", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/invalid-id/reviews")
@@ -117,7 +116,7 @@ describe("Review API", () => {
         comment: "Perfect product",
         rating: 4,
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response).toBeDefined();
     expect(response.status).toBe(404);
@@ -126,11 +125,11 @@ describe("Review API", () => {
 
   it("should return 400 when adding review without rating", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/cmuo0cm3z0000tsqiab60l87z/reviews")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         comment: "Perfect product",
       });
@@ -155,11 +154,11 @@ describe("Review API", () => {
 
   it("should create a review successfully with valid date", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/products/cmuo0cm3z0000tsqiab60l87z/reviews")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         rating: 5,
         comment: "Perfect product",

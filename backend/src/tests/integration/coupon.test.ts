@@ -15,12 +15,15 @@ const validCoupon = {
 };
 
 describe("Coupon Functionality Test", () => {
-  const getAdminToken = async () => {
+  const getAdminCookies = async () => {
     const loginResponse = await request(app).post("/api/v1/auth/login").send({
       email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD,
     });
-    return loginResponse.body.data.accessToken;
+
+    expect(loginResponse.status).toBe(200);
+
+    return loginResponse.headers["set-cookie"] ?? [];
   };
 
   it("should return 401 when unauthenticated user accesses coupon endpoints", async () => {
@@ -31,22 +34,21 @@ describe("Coupon Functionality Test", () => {
 
   it("should return 403 when a normal user tries to access coupon endpoints", async () => {
     const loginResponse = await successLogin();
-
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .get("/api/v1/coupons")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(403);
   });
 
   it("should create a percentage coupon successfully", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         ...validCoupon,
         code: "PERCENTAGE20",
@@ -61,11 +63,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should create a fixed discount coupon successfully", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "FIXED25",
         discountType: "FIXED",
@@ -79,11 +81,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 409 when coupon code already exists", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         ...validCoupon,
         code: "DUPLICATE20",
@@ -91,7 +93,7 @@ describe("Coupon Functionality Test", () => {
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         ...validCoupon,
         code: "DUPLICATE20",
@@ -101,11 +103,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 400 when required fields are missing", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "INCOMPLETE",
       });
@@ -114,11 +116,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 400 when discount value is negative", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "NEGATIVE20",
         discountType: "FIXED",
@@ -129,11 +131,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 400 when percentage discount exceeds 100", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "INVALID150",
         discountType: "PERCENTAGE",
@@ -144,11 +146,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 400 when usage limit is negative", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "INVALIDLIMIT",
         discountType: "FIXED",
@@ -160,11 +162,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 400 when expiration date is before start date", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "INVALIDDATES",
         discountType: "PERCENTAGE",
@@ -177,11 +179,11 @@ describe("Coupon Functionality Test", () => {
   });
 
   it("should return 400 when discount type is invalid", async () => {
-    const token = await getAdminToken();
+    const cookies = (await getAdminCookies()) as string[];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send({
         code: "INVALIDTYPE",
         discountType: "INVALID",
@@ -193,31 +195,32 @@ describe("Coupon Functionality Test", () => {
 
   it("should return 403 when a normal user tries to create a coupon", async () => {
     const loginResponse = await successLogin();
-    const token = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/coupons")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", cookies!)
       .send(validCoupon);
 
     expect(response.status).toBe(403);
   });
 
   describe("Coupon Retrieval Tests", () => {
-    let adminToken: string;
+    let adminCookies: string[];
     let couponId: string;
 
     beforeAll(async () => {
-      adminToken = await getAdminToken();
+      adminCookies = (await getAdminCookies()) as string[];
 
       const response = await request(app)
         .post("/api/v1/coupons")
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send(validCoupon);
+        .set("Cookie", adminCookies)
+        .send({
+          ...validCoupon,
+          code: "RETRIEVAL20",
+        });
 
       couponId = response.body.data.coupon.id;
-
-      console.log(response);
     });
 
     it("should return 401 when unauthenticated user tries to get all coupons", async () => {
@@ -228,11 +231,11 @@ describe("Coupon Functionality Test", () => {
 
     it("should return 403 when normal user tries to get all coupons", async () => {
       const loginResponse = await successLogin();
-      const accessToken = loginResponse.body.data.accessToken;
+      const cookies = loginResponse.headers["set-cookie"];
 
       const response = await request(app)
         .get("/api/v1/coupons")
-        .set("Authorization", `Bearer ${accessToken}`);
+        .set("Cookie", cookies!);
 
       expect(response.status).toBe(403);
     });
@@ -240,7 +243,7 @@ describe("Coupon Functionality Test", () => {
     it("should return all coupons for admin", async () => {
       const response = await request(app)
         .get("/api/v1/coupons")
-        .set("Authorization", `Bearer ${adminToken}`);
+        .set("Cookie", adminCookies);
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe("success");
@@ -251,7 +254,7 @@ describe("Coupon Functionality Test", () => {
     it("should return a coupon by ID for admin", async () => {
       const response = await request(app)
         .get(`/api/v1/coupons/${couponId}`)
-        .set("Authorization", `Bearer ${adminToken}`);
+        .set("Cookie", adminCookies);
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe("success");
@@ -261,7 +264,7 @@ describe("Coupon Functionality Test", () => {
     it("should return 404 when coupon does not exist", async () => {
       const response = await request(app)
         .get("/api/v1/coupons/nonexistent-coupon-id")
-        .set("Authorization", `Bearer ${adminToken}`);
+        .set("Cookie", adminCookies);
 
       expect(response.status).toBe(404);
     });
@@ -274,11 +277,11 @@ describe("Coupon Functionality Test", () => {
 
     it("should return 403 when normal user tries to get a coupon by ID", async () => {
       const loginResponse = await successLogin();
-      const accessToken = loginResponse.body.data.accessToken;
+      const cookies = loginResponse.headers["set-cookie"];
 
       const response = await request(app)
         .get(`/api/v1/coupons/${couponId}`)
-        .set("Authorization", `Bearer ${accessToken}`);
+        .set("Cookie", cookies!);
 
       expect(response.status).toBe(403);
     });

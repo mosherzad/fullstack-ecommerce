@@ -12,11 +12,6 @@ import { randomUUID } from "node:crypto";
 import { createAndSendVerificationEmail } from "../services/emailVerification.js";
 import type { Role } from "../generated/prisma/enums.js";
 
-type User = {
-  name: string;
-  email: string;
-  role: string;
-};
 export const signUp = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (req.body.password !== req.body.passwordConfirm)

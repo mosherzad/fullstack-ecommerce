@@ -14,11 +14,11 @@ describe("User API", () => {
   // it("should return 403 if normal user try to access all users", async () => {
   //   const loginResponse = await successLogin();
 
-  //   const accessToken = loginResponse.body.data.accessToken;
+  // const cookies = loginResponse.headers["set-cookie"];
 
   //   const response = await request(app)
   //     .get("/api/v1/users")
-  //     .set("Authorization", `Bearer ${accessToken}`);
+  //     .set("Cookie", cookies!);
 
   //   expect(response.status).toBe(403);
   //   expect(response.body.status).toBe("fail");
@@ -27,11 +27,11 @@ describe("User API", () => {
   // it("should return 200 with all user when token is exists and the user is ADMIN", async () => {
   //   const loginResponse = await successLogin();
 
-  //   const accessToken = loginResponse.body.data.accessToken;
+  // const cookies = loginResponse.headers["set-cookie"];
 
   //   const response = await request(app)
   //     .get("/api/v1/users")
-  //     .set("Authorization", `Bearer ${accessToken}`);
+  //     .set("Cookie", cookies!);
 
   //   expect(response.status).toBe(200);
   //   expect(response.body.status).toBe("success");
@@ -48,11 +48,10 @@ describe("User API", () => {
 
     expect(loginResponse.status).toBe(200);
 
-    const accessToken = loginResponse.body.data.accessToken;
-
+    const cookies = loginResponse.headers["set-cookie"];
     const response = await request(app)
       .delete("/api/v1/admin/users/cmumoowxh00003oqi4c8pn4sm")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(403);
   });
@@ -71,10 +70,10 @@ describe("User API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
     const response = await request(app)
       .get("/api/v1/admin/users/cmumoowxh00003oqi4c8pn4sm")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(200);
   });
@@ -90,14 +89,14 @@ describe("User API", () => {
     const loginResponse = await successLogin();
     expect(loginResponse).toBeDefined();
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .patch("/api/v1/users/me")
       .send({
         name: "MoSherzad",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe("success");
@@ -107,11 +106,11 @@ describe("User API", () => {
   it("should return 400 when user update his profile with invalid name", async () => {
     const loginResponse = await successLogin();
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .patch("/api/v1/users/me")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ name: "Mo" });
 
     expect(response.status).toBe(400);
@@ -120,11 +119,11 @@ describe("User API", () => {
 
   it("should return 400 when the update body is empty", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .patch("/api/v1/users/me")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({});
 
     expect(response.status).toBe(400);

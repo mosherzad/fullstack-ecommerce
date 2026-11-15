@@ -1,7 +1,5 @@
-// services/emailVerification.ts
-
 import crypto from "node:crypto";
-import { sendEmail } from "../utils/email.js"; // Adjust this path to your Nodemailer file.
+import { sendEmail } from "../utils/email.js";
 import prisma from "../lib/prisma.js";
 
 type VerificationUser = {

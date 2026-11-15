@@ -6,11 +6,11 @@ describe("Cart API", () => {
   it("should return 400 when add to cart with negative quantity number", async () => {
     const loginResponse = await successLogin();
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         productId: "cmvruxw2n0001lsqi660ccyu5",
         quantity: -1,
@@ -22,11 +22,11 @@ describe("Cart API", () => {
   it("should return 400 when add to cart with quantity 0", async () => {
     const loginResponse = await successLogin();
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         productId: "cmvruxw2n0001lsqi660ccyu5",
         quantity: 0,
@@ -37,11 +37,11 @@ describe("Cart API", () => {
 
   it("should return 400 when add to cart with a missing productId", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         quantity: 1,
       });
@@ -51,11 +51,11 @@ describe("Cart API", () => {
 
   it("should return 400 when add to cart with a missing quantity", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         productId: "cmvruxw2n0001lsqi660ccyu5",
       });
@@ -65,11 +65,11 @@ describe("Cart API", () => {
 
   it("should return 400 when add to cart with a non-numeric quantity", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         productId: "cmvruxw2n0001lsqi660ccyu5",
         quantity: "abc",
@@ -80,11 +80,11 @@ describe("Cart API", () => {
 
   it("should return 404 when add to cart with a non-existing product", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         productId: "cmvruxw2n0001lsqi660ccyu5xxxxxxx",
         quantity: 1,

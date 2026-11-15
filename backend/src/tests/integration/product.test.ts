@@ -15,7 +15,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
     const response = await request(app)
       .post("/api/v1/admin/products")
       .send({
@@ -24,7 +24,7 @@ describe("Product API", () => {
         stock: 100,
         categoryId: "cmujuli8o00005wqive11vfl1",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
@@ -36,7 +36,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
 
     const response = await request(app)
       .post("/api/v1/admin/products")
@@ -46,7 +46,7 @@ describe("Product API", () => {
         stock: 100,
         categoryId: "cmujuli8o00005wqive11vfl1",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
@@ -58,7 +58,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
 
     const response = await request(app)
       .post("/api/v1/admin/products")
@@ -68,7 +68,7 @@ describe("Product API", () => {
         stock: 25,
         categoryId: "cmujuli8o00005wqive11vfl1",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(400);
   });
@@ -79,7 +79,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
 
     const response = await request(app)
       .post("/api/v1/admin/products")
@@ -88,7 +88,7 @@ describe("Product API", () => {
         stock: 100,
         categoryId: "cmujuli8o00005wqive11vfl1",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
@@ -100,7 +100,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
     const response = await request(app)
       .post("/api/v1/admin/products")
       .send({
@@ -108,7 +108,7 @@ describe("Product API", () => {
         stock: 100,
         categoryId: "cmujuli8o00005wqive11vfl1",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");
@@ -120,7 +120,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
 
     const response = await request(app)
       .post("/api/v1/admin/products")
@@ -130,7 +130,7 @@ describe("Product API", () => {
         stock: 25,
         categoryId: "invalid-id",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(409);
   });
@@ -141,7 +141,7 @@ describe("Product API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers['set-cookie'];
 
     const response = await request(app)
       .post("/api/v1/admin/products")
@@ -151,7 +151,7 @@ describe("Product API", () => {
         stock: -100,
         categoryId: "cmujuli8o00005wqive11vfl1",
       })
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe("fail");

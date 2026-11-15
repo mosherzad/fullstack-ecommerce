@@ -34,11 +34,11 @@ describe("Category API", () => {
 
   it("should return 403 when a normal user tries to create a category", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/admin/categories")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ name: `Category ${Date.now()}` });
 
     expect(response.status).toBe(403);
@@ -47,11 +47,11 @@ describe("Category API", () => {
 
   it("should create a category successfully", async () => {
     const loginResponse = await adminLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/admin/categories")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ name: `Clothes` });
 
     expect(response.status).toBe(201);
@@ -60,11 +60,11 @@ describe("Category API", () => {
 
   it("should return 400 when creating a category with name less than 3 charachters", async () => {
     const loginResponse = await adminLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/admin/categories")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         name: "Ok",
       });
@@ -75,11 +75,11 @@ describe("Category API", () => {
 
   it("should return 400 when creating a category with name more than 12 charachters", async () => {
     const loginResponse = await adminLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/admin/categories")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         name: "Electronic Tv and PC ",
       });
@@ -94,10 +94,10 @@ describe("Category API", () => {
       password: process.env.ADMIN_PASSWORD,
     });
 
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
     const response = await request(app)
       .get("/api/v1/categories")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe("success");
@@ -106,11 +106,11 @@ describe("Category API", () => {
 
   it("should return 404 when category does not exist", async () => {
     const loginResponse = await adminLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .get("/api/v1/categories/nonexistent-category-id")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect([400, 404]).toContain(response.status);
     expect(response.body.status).toBe("fail");
@@ -127,11 +127,11 @@ describe("Category API", () => {
 
   it("should return 403 when a normal user tries to update a category", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .patch("/api/v1/admin/categories/nonexistent-category-id")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ name: "Updated category" });
 
     expect(response.status).toBe(403);
@@ -140,11 +140,11 @@ describe("Category API", () => {
 
   it("should return 400 when updating a category with invalid data", async () => {
     const loginResponse = await adminLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .patch("/api/v1/admin/categories/cmujuli8o00005wqive11vfl1")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ name: "" });
 
     expect(response.status).toBe(400);
@@ -162,11 +162,11 @@ describe("Category API", () => {
 
   it("should return 403 when a normal user tries to delete a category", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .delete("/api/v1/admin/categories/nonexistent-category-id")
-      .set("Authorization", `Bearer ${accessToken}`);
+      .set("Cookie", cookies!);
 
     expect(response.status).toBe(403);
     expect(response.body.status).toBe("fail");

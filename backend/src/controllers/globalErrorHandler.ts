@@ -10,7 +10,6 @@ const globalErrorHandler = (
 ) => {
   let error = err;
 
-  // Prisma record not found
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2025"
@@ -18,7 +17,6 @@ const globalErrorHandler = (
     error = new AppError("Record not found", 404);
   }
 
-  // Prisma douplicate error
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"

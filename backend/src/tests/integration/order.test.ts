@@ -19,7 +19,7 @@ describe("Order API", () => {
   it("should return 401 for adding order when token is invalid ", async () => {
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${"Invalid token"}`)
+      .set("Cookie", "invalid=cookies")
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [{ productId: "cmuo0cm3z0000tsqiab60l87z", quantity: 5 }],
@@ -31,11 +31,11 @@ describe("Order API", () => {
 
   it("should return 400 when adding order without items", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
       });
@@ -46,11 +46,11 @@ describe("Order API", () => {
 
   it("should return 400 when order items array is empty", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [],
@@ -62,11 +62,11 @@ describe("Order API", () => {
 
   it("should return 400 when productId is invalid", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [{ productId: "invalid-id", quantity: 2 }],
@@ -78,11 +78,11 @@ describe("Order API", () => {
 
   it("should return 400 when quantity is missing", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [{ productId: "cmuo0cm3z0000tsqiab60l87z" }],
@@ -94,11 +94,11 @@ describe("Order API", () => {
 
   it("should return 400 when adding order and the quantity is zero", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [{ productId: "cmuo0cm3z0000tsqiab60l87z", quantity: 0 }],
@@ -110,11 +110,11 @@ describe("Order API", () => {
 
   it("should return 400 when adding order and the quantity is negative", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         userId: "cmvf8npds0001n0qi4pw7ammf",
         items: [{ productId: "cmuo0cm3z0000tsqiab60l87z", quantity: -1 }],
@@ -154,11 +154,11 @@ describe("Order API", () => {
 
   it("should return 401 when try to update order with invalid token", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const response = await request(app)
       .patch("/api/v1/orders/cmuobcuik0000y0qiayzf5a23")
-      .set("Authorization", `Bearer ${"invalid token"}`);
+      .set("Cookie", "invalid=cookies");
 
     expect(response).toBeDefined();
     expect(response.status).toBe(401);
@@ -183,7 +183,7 @@ describe("Order API", () => {
 
   it("should reject an order when stock is insufficient", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const productId = "cmvrvqs8h00007wqi93bss7mt";
 
@@ -194,7 +194,7 @@ describe("Order API", () => {
 
     const response = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         items: [{ productId, quantity: 1 }],
       });
@@ -211,7 +211,7 @@ describe("Order API", () => {
 
   it("should restore product stock when an order is cancelled", async () => {
     const loginResponse = await successLogin();
-    const accessToken = loginResponse.body.data.accessToken;
+    const cookies = loginResponse.headers["set-cookie"];
 
     const productId = "cmuo0cm3z0000tsqiab60l87z";
     const quantity = 1;
@@ -224,14 +224,14 @@ describe("Order API", () => {
 
     const cartResponse = await request(app)
       .post("/api/v1/cart/items")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ productId, quantity });
 
     expect(cartResponse.status).toBe(200);
 
     const createResponse = await request(app)
       .post("/api/v1/orders/checkout")
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({
         shippingAddress: {
           fullName: "Mohammed Sherzad",
@@ -248,7 +248,7 @@ describe("Order API", () => {
 
     const cancelResponse = await request(app)
       .patch(`/api/v1/orders/${orderId}`)
-      .set("Authorization", `Bearer ${accessToken}`)
+      .set("Cookie", cookies!)
       .send({ status: "CANCELLED" });
 
     expect(cancelResponse.status).toBe(200);
