@@ -79,7 +79,7 @@ export const forgetPassword = catchAsync(
       },
     });
 
-    const resetURL = `${req.protocol}://${req.get("host")}/api/v1/auth/reset-password/${resetToken}`;
+    const resetURL = `${process.env.FRONTEND_RESET_PASSWORD_URL}/api/v1/auth/reset-password/${resetToken}`;
 
     try {
       await sendEmail(

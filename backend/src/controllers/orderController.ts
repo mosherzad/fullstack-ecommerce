@@ -39,23 +39,8 @@ const getMyOrders = catchAsync(async (req: Request, res: Response) => {
     orderBy: { createdAt: "desc" },
   });
 
-  if (!orders) {
-    throw new AppError("Order not found", 404);
-  }
   res.status(200).json({ status: "success", data: { orders } });
 });
-
-const getOrderById = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const order = await prisma.order.findUnique({
-      where: { id: req.params.id as string },
-    });
-
-    if (!order) throw new AppError("Order not found", 404);
-
-    res.status(200).json({ status: "success", data: { order } });
-  },
-);
 
 const deleteOrder = catchAsync(async (req: Request, res: Response) => {
   await prisma.order.delete({ where: { id: req.params.id as string } });
@@ -169,4 +154,4 @@ const checkout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { getMyOrders, getOrderById, updateOrderStatus, deleteOrder, checkout };
+export { getMyOrders, updateOrderStatus, deleteOrder, checkout };

@@ -101,7 +101,7 @@ export const login = catchAsync(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
-      .json({ status: "success", data: { name, email, role, accessToken } });
+      .json({ status: "success", data: { name, email, role } });
   },
 );
 

@@ -1,4 +1,5 @@
 import express from "express";
+import helmet from "helmet";
 import productsRouter from "./routes/productRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import userRouter from "./routes/userRoute.js";
@@ -15,7 +16,9 @@ import { globalLimiter } from "./middleware/rateLimiterMiddleware.js";
 
 const app = express();
 
-app.use(express.json());
+app.use(helmet());
+
+app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 
 app.use(globalLimiter);
@@ -30,6 +33,7 @@ app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/coupons", couponRoute);
-export default app;
 
 app.use(globalErrorHandler);
+
+export default app;

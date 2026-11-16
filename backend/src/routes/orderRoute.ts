@@ -3,16 +3,16 @@ import {
   updateOrderStatus,
   getMyOrders,
   checkout,
-  getOrderById,
 } from "../controllers/orderController.js";
 import { validateId } from "../middleware/validateIdMiddleware.js";
 import { validateData } from "../middleware/validationDataMiddleware.js";
 import { updateCategorySchema } from "../schemas/categorySchema.js";
-import { protect } from "../controllers/authController.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 import {
   createOrderSchema,
   updateOrderSchema,
 } from "../schemas/orderSchema.js";
+import { getOrderById } from "../controllers/admin/orderController.js";
 
 const router = Router();
 
@@ -24,7 +24,7 @@ router.route("/my-orders").get(protect, getMyOrders);
 
 router
   .route("/:id")
-  .get(validateId("id"), getOrderById)
+  .get(protect, restrictTo("ADMIN"), validateId("id"), getOrderById)
   .patch(
     protect,
     validateId("id"),
