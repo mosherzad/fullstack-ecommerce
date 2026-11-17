@@ -276,11 +276,55 @@
  *           type: string
  *         quantity:
  *           type: integer
+ *           minimum: 1
  *       required:
  *         - id
  *         - cartId
  *         - productId
  *         - quantity
+ *
+ *     CartProductSummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         image:
+ *           type: string
+ *           nullable: true
+ *         price:
+ *           type: string
+ *           description: Prisma Decimal serialized as a JSON string.
+ *         slug:
+ *           type: string
+ *       required:
+ *         - id
+ *         - name
+ *         - image
+ *         - price
+ *         - slug
+ *
+ *     CartItemWithProduct:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         cartId:
+ *           type: string
+ *         productId:
+ *           type: string
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *         product:
+ *           $ref: "#/components/schemas/CartProductSummary"
+ *       required:
+ *         - id
+ *         - cartId
+ *         - productId
+ *         - quantity
+ *         - product
  *
  *     Cart:
  *       type: object
@@ -292,7 +336,7 @@
  *         items:
  *           type: array
  *           items:
- *             $ref: "#/components/schemas/CartItem"
+ *             $ref: "#/components/schemas/CartItemWithProduct"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -326,6 +370,53 @@
  *           minimum: 1
  *       required:
  *         - quantity
+ *
+ *     WishlistProductSummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         price:
+ *           type: string
+ *           description: Prisma Decimal serialized as a JSON string.
+ *         image:
+ *           type: string
+ *           nullable: true
+ *       required:
+ *         - id
+ *         - name
+ *         - price
+ *         - image
+ *
+ *     WishlistItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         productId:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - id
+ *         - userId
+ *         - productId
+ *         - createdAt
+ *
+ *     WishlistItemWithProduct:
+ *       allOf:
+ *         - $ref: "#/components/schemas/WishlistItem"
+ *         - type: object
+ *           properties:
+ *             product:
+ *               $ref: "#/components/schemas/WishlistProductSummary"
+ *           required:
+ *             - product
  *
  *     ShippingAddress:
  *       type: object

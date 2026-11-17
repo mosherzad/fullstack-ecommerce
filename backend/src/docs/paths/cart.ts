@@ -5,7 +5,7 @@
  *     tags:
  *       - Cart
  *     summary: Get the authenticated user's cart
- *     description: Returns the authenticated user's cart and its items, including selected product details such as product name, image, price, and slug. The cart must already exist; this operation does not create one. Requires the accessToken cookie.
+ *     description: Returns the authenticated user's existing cart and its items, including selected product details (ID, name, image, serialized price, and slug). The operation does not create a cart. Requires the accessToken cookie and no role restriction; any authenticated USER or ADMIN may read their own cart. The global limiter allows 100 requests per 15 minutes.
  *     security:
  *       - accessTokenCookie: []
  *     responses:
@@ -38,7 +38,7 @@
  *     tags:
  *       - Cart
  *     summary: Clear the authenticated user's cart
- *     description: Deletes all cart items for the caller but leaves the cart itself in place. Requires an existing cart and the accessToken cookie; any authenticated user may clear their own cart.
+ *     description: Deletes all CartItem records for the caller's existing cart and leaves the Cart record in place. Requires the accessToken cookie and no role restriction; any authenticated USER or ADMIN may clear their own cart. Product stock is not changed. The global limiter allows 100 requests per 15 minutes.
  *     security:
  *       - accessTokenCookie: []
  *     responses:
@@ -67,7 +67,7 @@
  *     tags:
  *       - Cart
  *     summary: Add a product to the cart
- *     description: Adds the requested quantity to the caller's cart. If the cart does not exist, it is created. If the product is already in the cart, the requested quantity is added to its current quantity; the combined quantity may not exceed available stock. This operation does not decrement product stock. Requires the accessToken cookie; any authenticated user may modify their own cart.
+ *     description: Adds a positive integer quantity for a product to the caller's cart. The productId is a string with no format validation. If the cart does not exist, it is created. If the product is already present, the requested quantity is incremented onto the current quantity; the combined quantity must not exceed the product's available stock. This operation does not decrement product stock. Requires the accessToken cookie and no role restriction; any authenticated USER or ADMIN may modify their own cart. The global limiter allows 100 requests per 15 minutes.
  *     security:
  *       - accessTokenCookie: []
  *     requestBody:
@@ -95,7 +95,7 @@
  *                   required: [cartItem]
  *               required: [status, data]
  *       "400":
- *         description: Request validation failed or combined quantity exceeds available stock.
+ *         description: Zod validation failed (productId must be a string and quantity must be a positive integer) or combined quantity exceeds available stock.
  *         content:
  *           application/json:
  *             schema:
@@ -118,7 +118,7 @@
  *     tags:
  *       - Cart
  *     summary: Set a cart item's quantity
- *     description: Replaces the quantity for an item already in the caller's cart. The cart and product must exist, and the item must already belong to the cart. The requested quantity may not exceed available product stock. This operation does not decrement product stock. Requires the accessToken cookie; any authenticated user may modify their own cart.
+ *     description: Replaces the quantity for an item already in the caller's cart. The productId path value only requires a non-empty path value; the route does not validate a CUID format. The cart, product, and matching cart item must exist. quantity must be a positive integer and may not exceed available product stock. This operation does not decrement product stock. Requires the accessToken cookie and no role restriction; any authenticated USER or ADMIN may modify their own cart. The global limiter allows 100 requests per 15 minutes.
  *     security:
  *       - accessTokenCookie: []
  *     parameters:
@@ -153,7 +153,7 @@
  *                   required: [cartItem]
  *               required: [status, data]
  *       "400":
- *         description: Request validation failed, productId is missing, or quantity exceeds available stock.
+ *         description: Zod validation failed (quantity must be a positive integer) or quantity exceeds available stock.
  *         content:
  *           application/json:
  *             schema:
@@ -174,7 +174,7 @@
  *     tags:
  *       - Cart
  *     summary: Remove a product from the cart
- *     description: Removes the matching item from the caller's existing cart. Requires the accessToken cookie; any authenticated user may modify their own cart. Product stock is not changed.
+ *     description: Deletes the matching CartItem from the caller's existing cart. The productId path value only requires a non-empty path value; it is not format-validated. An existing cart and matching cart item are required. Requires the accessToken cookie and no role restriction; any authenticated USER or ADMIN may modify their own cart. Product stock is not changed. The global limiter allows 100 requests per 15 minutes.
  *     security:
  *       - accessTokenCookie: []
  *     parameters:
@@ -196,8 +196,6 @@
  *                   type: string
  *                   enum: [success]
  *               required: [status]
- *       "400":
- *         $ref: "#/components/responses/BadRequest"
  *       "401":
  *         $ref: "#/components/responses/Unauthorized"
  *       "404":
