@@ -44,3 +44,7 @@ export const updateUserProfileSchema = z
   .refine((data) => data.name !== undefined || data.photo !== undefined, {
     message: "At least one field must be provided",
   });
+
+export const forgetPasswordSchema = z.object({
+  email: z.email("You should enter your email"),
+});

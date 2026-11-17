@@ -8,19 +8,17 @@ import {
   updateCartItemServices,
 } from "../services/cartServices.js";
 
-export const addToCart = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { productId, quantity } = req.body;
-    const userId = req.user!.userId;
+export const addToCart = catchAsync(async (req: Request, res: Response) => {
+  const { productId, quantity } = req.body;
+  const userId = req.user!.userId;
 
-    const cartItem = await addToCartServices(userId, productId, quantity);
+  const cartItem = await addToCartServices(userId, productId, quantity);
 
-    res.status(200).json({
-      status: "success",
-      data: { cartItem },
-    });
-  },
-);
+  res.status(200).json({
+    status: "success",
+    data: { cartItem },
+  });
+});
 
 export const getCart = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

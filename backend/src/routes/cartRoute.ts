@@ -17,6 +17,7 @@ import { validateId } from "../middleware/validateIdMiddleware.js";
 const router = express.Router();
 
 router.use(protect);
+
 router.route("/").get(getCart).delete(clearCart);
 router.post("/items", validateData(addToCartSchema), addToCart);
 router

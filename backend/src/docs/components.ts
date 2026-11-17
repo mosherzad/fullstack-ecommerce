@@ -129,6 +129,49 @@
  *           required:
  *             - reviews
  *
+ *     ProductRecord:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         slug:
+ *           type: string
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         price:
+ *           type: string
+ *           description: Prisma Decimal serialized as a JSON string.
+ *         stock:
+ *           type: integer
+ *         image:
+ *           type: string
+ *           nullable: true
+ *         isActive:
+ *           type: boolean
+ *         categoryId:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - id
+ *         - name
+ *         - slug
+ *         - description
+ *         - price
+ *         - stock
+ *         - image
+ *         - isActive
+ *         - categoryId
+ *         - createdAt
+ *         - updatedAt
+ *
  *     CreateProductInput:
  *       type: object
  *       properties:
@@ -200,6 +243,28 @@
  *         - createdAt
  *         - updatedAt
  *
+ *     CreateCategoryInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Trimmed before validation; the resulting name must be 3 to 12 characters long.
+ *         image:
+ *           type: string
+ *           description: Optional image string; leading and trailing whitespace is trimmed.
+ *       required:
+ *         - name
+ *
+ *     UpdateCategoryInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Optional replacement name, trimmed before validation; the resulting name must be 3 to 12 characters long.
+ *         image:
+ *           type: string
+ *           description: Optional image string; leading and trailing whitespace is trimmed.
+ *
  *     CartItem:
  *       type: object
  *       properties:
@@ -240,6 +305,27 @@
  *         - items
  *         - createdAt
  *         - updatedAt
+ *
+ *     AddToCartInput:
+ *       type: object
+ *       properties:
+ *         productId:
+ *           type: string
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *       required:
+ *         - productId
+ *         - quantity
+ *
+ *     UpdateCartItemInput:
+ *       type: object
+ *       properties:
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *       required:
+ *         - quantity
  *
  *     ShippingAddress:
  *       type: object

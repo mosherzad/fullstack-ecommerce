@@ -4,7 +4,21 @@ import AppError from "../utils/appError.js";
 export const getCartServices = async (userId: string) => {
   const cart = await prisma.cart.findUnique({
     where: { userId },
-    include: { items: true },
+    include: {
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              price: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!cart) {
@@ -13,6 +27,7 @@ export const getCartServices = async (userId: string) => {
 
   return cart;
 };
+
 export const addToCartServices = async (
   userId: string,
   productId: string,

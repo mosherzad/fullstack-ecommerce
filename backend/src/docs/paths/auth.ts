@@ -225,6 +225,7 @@
  *                         - type: object
  *                           required:
  *                             - id
+ *                             - email
  *                             - photo
  *                             - isActive
  *                             - createdAt
@@ -299,7 +300,7 @@
  *     tags:
  *       - Authentication
  *     summary: Request a password reset email
- *     description: Requests a password reset link. The same success response is returned whether or not the account exists. For an existing account, the reset link expires after 10 minutes. The controller reads an email field but this route does not apply Zod request validation. The global limiter allows 100 requests per 15 minutes; the email limiter allows 5 requests per 15 minutes and skips successful requests.
+ *     description: Requests a password reset link. The same success response is returned whether or not the account exists. For an existing account, the reset link expires after 10 minutes. The controller reads an email field. The global limiter allows 100 requests per 15 minutes; the email limiter allows 5 requests per 15 minutes and skips successful requests.
  *     requestBody:
  *       required: true
  *       content:
@@ -309,7 +310,8 @@
  *             properties:
  *               email:
  *                 type: string
- *                 description: Account email address. No format validation is performed by this route.
+ *                 format: email
+ *                 description: Valid email address used to request a password reset
  *             required:
  *               - email
  *     responses:
@@ -329,6 +331,8 @@
  *               required:
  *                 - status
  *                 - message
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
  *       "429":
  *         $ref: "#/components/responses/TooManyRequests"
  *       "500":
@@ -339,7 +343,7 @@
  *     tags:
  *       - Authentication
  *     summary: Reset a password
- *     description: Resets the password using a URL token from the reset email. The token expires after 10 minutes. The route requires both password fields to be strings and the controller requires them to match; no minimum password length is enforced here. The global limiter allows 100 requests per 15 minutes; the authentication limiter allows 10 requests per 15 minutes and skips successful requests.
+ *     description: Resets the password using a URL token from the reset email. The token expires after 10 minutes. The route requires both password fields to be strings and the controller requires them to match;  minimum password length is 8 charachters. The global limiter allows 100 requests per 15 minutes; the authentication limiter allows 10 requests per 15 minutes and skips successful requests.
  *     parameters:
  *       - name: resetToken
  *         in: path
@@ -385,44 +389,6 @@
  *       "500":
  *         $ref: "#/components/responses/InternalServerError"
  *
- * /api/v1/auth/resend-verification:
- *   post:
- *     tags:
- *       - Authentication
- *     summary: Resend an email verification link
- *     description: Sends a new verification link when the account exists and is not already verified. A generic success response is returned for missing or already-verified accounts. The controller reads an email field but this route does not apply Zod request validation. The global limiter allows 100 requests per 15 minutes; the email limiter allows 5 requests per 15 minutes and skips successful requests.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 description: Account email address. No format validation is performed by this route.
- *             required:
- *               - email
- *     responses:
- *       "200":
- *         description: Generic for a missing or already-verified account; otherwise confirms that a verification message was sent.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   enum: [success]
- *                 message:
- *                   type: string
- *               required:
- *                 - status
- *                 - message
- *       "429":
- *         $ref: "#/components/responses/TooManyRequests"
- *       "500":
- *         $ref: "#/components/responses/InternalServerError"
  *
  * /api/v1/auth/send-verification-email:
  *   post:

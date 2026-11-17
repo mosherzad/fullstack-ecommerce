@@ -10,6 +10,7 @@ import {
 import { validateData } from "../middleware/validationDataMiddleware.js";
 import {
   changePasswordSchema,
+  forgetPasswordSchema,
   loginSchema,
   resetPasswordSchema,
   signUpSchema,
@@ -46,11 +47,12 @@ router
     updatePassword,
   );
 
-router.route("/forget-password").post(emailLimiter, forgetPassword);
+router
+  .route("/forget-password")
+  .post(emailLimiter, validateData(forgetPasswordSchema), forgetPassword);
 router
   .route("/reset-password/:resetToken")
   .patch(authLimiter, validateData(resetPasswordSchema), resetPassword);
-router.route("/resend-verification").post(emailLimiter, sendVerificationEmail);
 router
   .route("/send-verification-email")
   .post(emailLimiter, sendVerificationEmail);
