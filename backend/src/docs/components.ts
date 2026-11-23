@@ -423,17 +423,169 @@
  *       properties:
  *         fullName:
  *           type: string
+ *           minLength: 3
+ *           maxLength: 50
  *         phone:
  *           type: string
+ *           minLength: 7
+ *           maxLength: 20
  *         city:
  *           type: string
+ *           minLength: 2
+ *           maxLength: 50
  *         address:
  *           type: string
+ *           minLength: 3
+ *           maxLength: 200
  *       required:
  *         - fullName
  *         - phone
  *         - city
  *         - address
+ *
+ *     CheckoutRequest:
+ *       type: object
+ *       properties:
+ *         shippingAddress:
+ *           $ref: "#/components/schemas/ShippingAddress"
+ *         paymentMethod:
+ *           type: string
+ *           enum: [COD, STRIPE]
+ *         code:
+ *           type: string
+ *           description: Optional coupon code. If supplied, the coupon must exist and be active and within its date and usage limits.
+ *       required:
+ *         - shippingAddress
+ *         - paymentMethod
+ *
+ *     UpdateOrderStatusRequest:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [PENDING, SHIPPED, DELIVERED, CANCELLED]
+ *       description: Status is optional in Zod; the implementation requires CANCELLED for non-admin callers.
+ *
+ *     MyOrderSummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED]
+ *         total:
+ *           type: string
+ *           description: Prisma Decimal serialized as a JSON string.
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         _count:
+ *           type: object
+ *           properties:
+ *             items:
+ *               type: integer
+ *               minimum: 0
+ *           required:
+ *             - items
+ *         shippingAddress:
+ *           $ref: "#/components/schemas/ShippingAddress"
+ *         paymentMethod:
+ *           type: string
+ *           enum: [COD, STRIPE]
+ *       required:
+ *         - id
+ *         - status
+ *         - total
+ *         - createdAt
+ *         - _count
+ *         - shippingAddress
+ *         - paymentMethod
+ *
+ *     CheckoutOrder:
+ *       type: object
+ *       description: The checkout projection returned by the controller. Order items do not include expanded Product objects.
+ *       properties:
+ *         id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         subtotal:
+ *           type: string
+ *           description: Sum of each cart item's product price multiplied by quantity, serialized by Prisma as a JSON string.
+ *         discountAmount:
+ *           type: string
+ *           description: Coupon discount, serialized by Prisma as a JSON string.
+ *         total:
+ *           type: string
+ *           description: subtotal minus discountAmount, serialized by Prisma as a JSON string.
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [COD, STRIPE]
+ *         items:
+ *           type: array
+ *           items:
+ *             $ref: "#/components/schemas/OrderItem"
+ *       required:
+ *         - id
+ *         - userId
+ *         - subtotal
+ *         - discountAmount
+ *         - total
+ *         - status
+ *         - paymentMethod
+ *         - items
+ *
+ *     AdminOrder:
+ *       type: object
+ *       description: Full scalar Order record projection for the administrator list and get-by-ID controllers. No order-item relation or expanded product relation is included.
+ *       properties:
+ *         id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         couponId:
+ *           type: string
+ *           nullable: true
+ *         subtotal:
+ *           type: string
+ *         discountAmount:
+ *           type: string
+ *         total:
+ *           type: string
+ *         paymentMethod:
+ *           type: string
+ *           enum: [COD, STRIPE]
+ *         paymentStatus:
+ *           type: string
+ *           enum: [UNPAID, PAID, FAILED]
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED]
+ *         shippingAddress:
+ *           $ref: "#/components/schemas/ShippingAddress"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - id
+ *         - userId
+ *         - couponId
+ *         - subtotal
+ *         - discountAmount
+ *         - total
+ *         - paymentMethod
+ *         - paymentStatus
+ *         - status
+ *         - shippingAddress
+ *         - createdAt
+ *         - updatedAt
  *
  *     OrderItem:
  *       type: object
