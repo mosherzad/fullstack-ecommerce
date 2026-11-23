@@ -680,6 +680,63 @@
  *         - id
  *         - name
  *
+ *     CreateReviewInput:
+ *       type: object
+ *       properties:
+ *         rating:
+ *           type: number
+ *           minimum: 1
+ *           maximum: 5
+ *           description: Zod requires a number from 1 through 5. Zod does not enforce integer or step constraints.
+ *         comment:
+ *           type: string
+ *           description: Optional comment. The Zod string schema does not trim or impose a minimum or maximum length.
+ *       required:
+ *         - rating
+ *
+ *     UpdateReviewInput:
+ *       type: object
+ *       properties:
+ *         rating:
+ *           type: number
+ *           minimum: 1
+ *           maximum: 5
+ *           description: Optional replacement rating from 1 through 5. Zod does not enforce integer or step constraints.
+ *         comment:
+ *           type: string
+ *           description: Optional replacement comment. The Zod string schema does not trim or impose a minimum or maximum length.
+ *
+ *     ReviewRecord:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         rating:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 5
+ *         comment:
+ *           type: string
+ *           nullable: true
+ *         userId:
+ *           type: string
+ *         productId:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - id
+ *         - rating
+ *         - comment
+ *         - userId
+ *         - productId
+ *         - createdAt
+ *         - updatedAt
+ *
  *     Review:
  *       type: object
  *       properties:
