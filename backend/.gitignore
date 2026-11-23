@@ -7,4 +7,4 @@ node_modules/
 /src/generated/prisma
 dist/
 
-SECURITY-REVIEW.md
+/backend/src/SECURITY-REVIEW.md
